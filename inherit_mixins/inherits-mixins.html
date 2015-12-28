@@ -3,28 +3,12 @@
 <head>
     <title>yupeng's document </title>
     <meta charset="utf-8"/>
-	<script src="inherits_browser.js"></script>
+	<script src="inherits_mixins_browser.js"></script>
 </head>
 <body>
     <script type="text/javascript">
       
-	   
-        function newInherits(sub,parent){
-            var args = [].slice.call(arguments,2)||[];
-            inherits(sub,parent);
-            for(var i=0,len=args.length;i<len;i++){
-                for(var p in args[i]){
-                    if(Object.getOwnPropertyDescriptor(args[i],p)){
-                        Object.defineProperty(sub.prototype,p,Object.getOwnPropertyDescriptor(args[i],p));
-                    }else{
-                        sub.prototype[p] = args[i][p];
-                    }                    
-                }                
-            }            
-        }   
-
-
-        //Parent
+        //EventEmitter Simulator
         function EventEmitter(){
             this.eventBus = {};            
         }
@@ -78,7 +62,7 @@
         }
 
         //inherit from Parent
-        newInherits(Foo,EventEmitter,observableProp,mixinsTwo,mixinsThree);
+        inheritsMixins(Foo,EventEmitter,observableProp,mixinsTwo,mixinsThree);
 
 
         var foo = new Foo();
