@@ -1,0 +1,15 @@
+{
+  "name": "inherits_mixins",
+  "description": "inherits_mixins",
+  "version": "1.0.0",
+  "keywords": [
+    "inheritance",
+    "mixins"    
+  ],
+  "main": "./inherits_mixins.js",  
+  "repository": "git://github.com/inherits_mixins/inherits_mixins",
+  "license": "ISC",
+  "scripts": {
+    "test": "node test-inherits-mixins"
+  }
+}

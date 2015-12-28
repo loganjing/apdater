@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>yupeng's document </title>
+    <meta charset="utf-8"/>
+	<script src="inherits_browser.js"></script>
+</head>
+<body>
+    <script type="text/javascript">
+      
+	   
+        function newInherits(sub,parent){
+            var args = [].slice.call(arguments,2)||[];
+            inherits(sub,parent);
+            for(var i=0,len=args.length;i<len;i++){
+                for(var p in args[i]){
+                    if(Object.getOwnPropertyDescriptor(args[i],p)){
+                        Object.defineProperty(sub.prototype,p,Object.getOwnPropertyDescriptor(args[i],p));
+                    }else{
+                        sub.prototype[p] = args[i][p];
+                    }                    
+                }                
+            }            
+        }   
+
+
+        //Parent
+        function EventEmitter(){
+            this.eventBus = {};            
+        }
+        EventEmitter.prototype = {
+            on :function(eName,handler){
+                this.eventBus[eName] = handler;
+            },
+            off:function(eName){
+                delete this.eventBus[eName];
+            },
+            emit:function(eName){
+                var handler = this.eventBus[eName];
+                if(handler){
+                    var args = [].slice.call(arguments,1);
+                    handler.apply(this,args);
+                }
+            }
+        }
+
+
+        //Child
+        function Foo(){
+            EventEmitter.call(this);
+        }
+
+        //mixins one
+        var observableProp = {};
+        Object.defineProperties(observableProp,{
+            "name":{                
+                get:function(){
+                    return this.nm;
+                },
+                set:function(nameVal){
+                    var oldVal = this.name;
+                    this.nm = nameVal;
+                    this.emit("change",oldVal,this.nm);
+                },
+                configurable:true,
+                enumerable:true
+            }
+        });
+
+        var mixinsTwo = {
+            number:"This is number!"
+        }
+
+        var mixinsThree = {
+            calc:function(n,m){
+                return  n * m;
+            }
+        }
+
+        //inherit from Parent
+        newInherits(Foo,EventEmitter,observableProp,mixinsTwo,mixinsThree);
+
+
+        var foo = new Foo();
+        foo.name = "Kevin";
+        console.log(foo.name);
+
+        //如果不调用newInherits，直接调用on方法会出错，因为还没有做继承。
+        foo.on("change",function(oldVal,newVal){
+             console.log("name changed: newValue:"+newVal+" oldValue:"+oldVal);
+        });
+
+        
+
+        foo.name = "Kevin1"; 
+        console.log(foo.name);
+        console.log(foo.number);
+        console.log(foo.calc(4,5));
+
+
+    </script>
+</body>
+</html>
