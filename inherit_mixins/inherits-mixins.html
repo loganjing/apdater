@@ -35,8 +35,7 @@
         }
 
         //mixins one
-        var observableProp = {};
-        Object.defineProperties(observableProp,{
+        var observableProp = {
             "name":{                
                 get:function(){
                     return this.nm;
@@ -49,7 +48,7 @@
                 configurable:true,
                 enumerable:true
             }
-        });
+        };        
 
         var mixinsTwo = {
             number:"This is number!"
@@ -62,7 +61,7 @@
         }
 
         //inherit from Parent
-        inheritsMixins(Foo,EventEmitter,observableProp,mixinsTwo,mixinsThree);
+        inheritsMixins(Foo,EventEmitter,observableProp);
 
 
         var foo = new Foo();

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>yupeng's document </title>
+    <meta charset="utf-8"/>
+	<script src="defineProperties.js"></script>
+</head>
+<body>
+    <script type="text/javascript">
+      
+        
+
+        function Foo(){}
+       
+
+        //mixins one
+        var observableProp = {
+            "name":{                
+                get:function(){
+                    return "Hello,Name";
+                },
+                set:function(nameVal){
+                    var oldVal = this.name;
+                    this.nm = nameVal;                   
+                },
+                configurable:true,
+                enumerable:true
+            }
+        };        
+
+        var mixinsTwo = {
+            number:"This is number!"
+        }
+
+        var mixinsThree = {
+            calc:function(n,m){
+                return  n * m;
+            }
+        }
+
+        var foo = new Foo();
+		foo = Object.defineProperties(foo,observableProp);        
+		console.log(foo.name);
+		foo = Object.defineProperties(foo,mixinsTwo); 
+		console.log(foo.number);
+
+		//无法添加函数
+		foo = Object.defineProperties(foo,mixinsThree);     
+		foo.calc(4,5);
+        console.log(val);
+
+
+    </script>
+</body>
+</html>

@@ -125,15 +125,29 @@ if (!Object.keys) {
 
 
 
+
+
+
+
+
 function inheritsMixins(sub,sup){
     inherits(sub,sup);
     if(arguments.length>2){
       var args = [].slice.call(arguments,2);
       for(var i=0,len=args.length;i<len;i++){
-        Object.keys(args[i]).forEach(function(key){
-          Object.defineProperty(sub.prototype,key,Object.getOwnPropertyDescriptor(args[i],key));
-        })                
-        } 
+          //sub.prototype = Object.defineProperties(sub.prototype,args[i]);
+          for(var key in args[i]){
+			  var tmp = {};
+			  tmp[key] = args[i][key];
+			  Object.defineProperties(sub.prototype,tmp);
+			  //tmp.name="Hello,Kevin";
+			  //sub.prototype[key] = tmp;
+			  console.log(sub.prototype.name);
+			  //console.log(tmp.name);
+
+            //Object.defineProperty(sub.prototype,key,Object.getOwnPropertyDescriptor(args[i],key));
+          }
+      } 
     }            
 }   
 
