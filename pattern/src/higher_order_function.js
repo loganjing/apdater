@@ -29,13 +29,7 @@ for (var i = 0, types = ['Number', 'String', 'Array']; i < types.length; i++) {
     })(types[i]);
 }
 
-//单例模式
-var getSingleton = function(fn) {
-    var v;
-    return function() {
-        return v || (v = fn.apply(this, arguments));
-    }
-}
+
 
 //AOP(before&after)
 Function.prototype.before = function(fn) {

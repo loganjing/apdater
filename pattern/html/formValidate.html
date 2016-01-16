@@ -1,0 +1,68 @@
+<html>
+    <head>
+        <meta content="text/html; charset=utf-8" http-equiv="content-type" />
+    </head>
+	<body>
+		<form  id="registerForm" method="post">
+		   USERNAME: <input type="text" name="userName">
+		   PASSSWORD: <input type="password" name="password">
+		   EMAIL:<input type="text" name="email">
+		   <button>Submit</button>
+		</form>
+	</body>
+	<script type="text/javascript">
+        var strategies = {
+        	"isNotEmpty":function(value,errMsg){
+                if(value =="") return errMsg;
+        	},
+        	"minLength":function(value,length,errMsg){
+                if(value.length<length) return errMsg;     
+        	},
+        	isEmail:function(value,errMsg){
+                var r = /@/g
+                if(!r.test(value)) return errMsg;
+        	}
+        }
+
+        function Validator(){
+        	this.validators = [];
+        	this.start = function(){
+        		//i++,或者之后再+1。和++i相反
+                for(var i=0,fn;fn=this.validators[i++];){
+                	var msg =  fn();
+                	if(msg) return msg;
+                }
+        	}
+        	this.add = function(elem,type,msg){
+        		var arr = type.split(":");
+        		//使用匿名函数直接包装，赋值到数组中，而不是判断元素。
+                this.validators.push(function(){
+                	var type = arr.shift();
+                	arr.unshift(elem.value);
+                	arr.push(msg);
+                	return strategies[type].apply(elem,arr);
+                });
+        	}
+        }
+
+        var validateFun = function(){
+        	var validator = new Validator();
+        	validator.add(registerForm.userName,"isNotEmpty","用户名不能为空！");
+        	validator.add(registerForm.password,"minLength:6","最小长度为6");
+        	validator.add(registerForm.email,"isEmail","必须是EMAIL格式");
+        	var errMsg = validator.start();
+        	return errMsg;
+        }
+
+        var registerForm = document.getElementById("registerForm");
+        registerForm.onsubmit=function(){
+        	var errMsg = validateFun();
+        	if(errMsg){
+        		alert(errMsg);
+        		return false;
+        	}
+        }
+
+        
+	</script>
+</html>
