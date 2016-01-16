@@ -1,0 +1,212 @@
+<html>
+    <head>
+       <meta http-equiv=Content-Type content="text/html;charset=utf-8">
+       <style>
+          span{
+          	border: 1px solid #ddd;
+          	width: 25px;
+          	height: 25px;
+          	display: inline-block;
+          }
+       </style>
+    </head>
+
+	<body>
+	   Some example about 高阶函数
+	   <input type="text" id="test">
+	</body>
+	<script type="text/javascript">
+	   
+
+	   
+
+	   
+
+	   
+
+	   
+
+	   
+
+	   
+
+	   //Currying
+	   var cost = (function(){
+           var arr = [];
+           //这里才是每次真正执行的函数
+           return function(){
+              if(arguments.length==0){
+              	var all = 0;
+                for(var i=0;i<arr.length;i++){
+                    all += arr[i];
+                }
+                console.log("All cost is:"+all);
+              }else{
+              	//Array.prototype.push.apply(arr,arguments);
+              	//arr[arr.length] = arguments[0];
+                [].push.apply(arr,arguments);
+              }
+           }
+	   })();//这里只是生成cost函数
+
+	   cost(200);
+	   cost(300);
+	   cost(400);
+	   cost();
+
+	   //一个通用的currying
+	   var currying = function(fn){
+	   	    var arr = [];
+            return function(){
+               if(arguments.length==0){
+               	  fn.apply(this,arr);
+               }else{
+               	  arr.push(arguments[0]);
+               	  return arguments.callee;
+               }
+            }
+	   };
+
+	   var cost = currying(function(){
+	       var all = 0;
+	       for(var i=0;i<arguments.length;i++){
+	           all += arguments[i];
+	       }
+	       console.log("All cost is:"+all);
+	   });
+
+	   cost(100);
+	   cost(200);
+	   cost(300);
+	   cost();
+
+	   //uncurrying: 一个对象也可以使用不属于自己的方法
+	   var obj = {
+	   	   name : 'Kevin'
+	   }
+	   var obj2 = {
+	   	   getName :function(){
+	   	   	return this.name;
+	   	   }
+	   }
+	   console.log(obj2.getName.call(obj));
+
+	   (function(){
+	   	   //this =  arguments, push 4，5到arguments这个对象中。
+	   	   [].push.apply(arguments,[4,5]);
+	   	   console.log(arguments);
+           //从第三个位置删除一个元素
+	   	   [].splice.call(arguments,3,1);
+	   	   console.log(arguments);
+           //arguments被合并到［8，9］
+	   	   var a  =[].concat.apply([8,9],arguments);
+	   	   console.log(a);
+	   })(1,2,3);
+
+	   Function.prototype.uncurrying = function(){
+           var self = this;
+           return function(){
+           	   //从参数中获取第一个对象，之后在调用arguments.
+           	   var obj = Array.prototype.shift.call(arguments);
+           	   self.apply(obj,arguments);
+           }
+	   }
+
+	   var push = Array.prototype.push.uncurrying();
+	   (function(){
+	   	   push(arguments,4);
+	   	   console.log(arguments);
+	   })(1,2,3);
+
+	   //函数节流，对于可能频繁触发的函数的处理方式，如果正在执行，返回。
+	   var throttle = function(fn,timeout){
+           var __self = fn, timer, firstTime = true;
+           return function(){
+           	   var args  = arguments, me = this;
+           	   if(firstTime){
+           	   	   __self.apply(me,args);
+           	   	   firstTime = false;
+               }
+               if(timer){
+               	   //表示定时器还在，还在定时的范围之内，返回
+               	   return false;
+               }else{
+               	   timer = setTimeout(function(){
+               	   	   clearTimeout(timer);
+                       timer = null;
+                       __self.apply(me,args);
+               	   },timeout||500);
+               }
+           }
+	   }
+
+	   window.onresize = throttle(function(){
+	   	   console.log("resize");
+	   },1000);
+
+	   //分时函数
+	   var timeChunk = function(data,fn,num){
+          var obj,t;
+          var len =  data.length;
+          var start = function(){
+          	for(var i=0;i<Math.min(num||1,data.length);i++){
+          		var obj = data.shift();
+          		fn(obj);
+          	}
+          }
+          return function(){
+          	if(len==0){
+               clearInterval(t);
+               t = null;
+          	}else{
+               t = setInterval(function(){
+               	  start();
+               	  //必须放在这里判断，否则Interaval一直运行，造成资源浪费。
+               	  if(data.length==0){
+               	  	clearInterval(t);
+               	  	t = null;
+               	  }
+               },200);
+          	}
+          }
+	   }
+
+	   var arr = [];
+	   for(var i=0;i<100;i++){
+	   	  arr.push(i);
+	   }
+
+	   var renderList = timeChunk(arr,function(data){
+	   	   var div = document.createElement("span");
+	   	   div.innerHTML = data;
+	   	   document.body.appendChild(div);
+	   },8);
+
+	   renderList();
+
+	   //惰性加载函数
+	   var addEvent = function(elem,type,handler){
+           if(window.addEventListener){
+           	   addEvent = function(elem,type,handler){
+           	   	  elem.addEventListener(type,handler);
+           	   }
+           }else if(window.attachEvent){
+           	   addEvent = function(elem,type,handler){
+           	   	  elem.attachEvent('on'+type,handler);
+           	   }
+           }
+           addEvent(elem,type,handler);
+	   }
+
+	   var n1 = document.getElementById("test");
+	   addEvent(n1,"change",function(){
+	   	   console.log("text changed");
+	   })
+	   addEvent(n1,"focus",function(){
+	   	   console.log("text focus");
+	   });
+
+
+
+	</script>
+</html>

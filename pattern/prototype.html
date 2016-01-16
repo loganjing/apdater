@@ -1,0 +1,33 @@
+<html>
+
+	<body>
+		Some example.
+	</body>
+	<script type="text/javascript">
+
+
+        //模拟NEW对象具体如何操作
+		function ObjectFactory(){
+			var obj = new Object();
+			var Contructor = [].shift.call(arguments);
+			obj.__proto__ = Contructor.prototype;
+			var ret = Contructor.apply(obj,arguments);
+			return typeof ret === "object" ? ret : obj;
+	    }
+
+		function Person(name){
+		  this.name = name;
+		}
+
+		Person.prototype.getName = function(){
+		   return this.name;
+		}
+
+
+		var a = ObjectFactory(Person,"Kevin");
+		console.log(a.name);
+
+		console.log(a.getName());
+		console.log(Object.getPrototypeOf(a) == Person.prototype);
+	</script>
+</html>
