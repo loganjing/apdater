@@ -1,0 +1,38 @@
+<!doctype html>
+ <html>
+      <head>
+          <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+          <link href="https://cdn.bootcss.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" rel="stylesheet" />
+          <style>
+              .dbl-top-margin {
+                  margin-top: 20px;
+              }
+             .float-right {
+                 float: right;
+             }
+         </style>
+         <script class="template" type="text/template">
+             <span class="timeConsumed"></span>
+             <ul class="list-group dbl-top-margin">
+                 {{#items}}
+                     <li class="list-group-item">
+                         <span>{{name}}</span>
+                         <button data-index="{{@index}}" class="item-remove btn btn-danger btn-sm float-right">删除</button>
+                     </li>
+                 {{/items}}
+             </ul>
+             <div class="dbl-top-margin">
+                 <input placeholder="添加新项目" type="text" class="form-control item-name" />
+                 <button class="dbl-top-margin btn btn-primary col-xs-12 item-add">添加</button>
+             </div>
+             <div class="dbl-top-margin">
+                 <button class="dbl-top-margin btn btn-primary col-xs-12 batch-add1">Render100WithAntimate</button>
+             </div>
+
+         </script>
+     </head>
+     <body>
+         <div class="container"></div>
+         <script src="lib/dist.js"></script>
+     </body>
+ </html>
