@@ -1,0 +1,112 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <link rel="stylesheet" type="text/css" media="screen" href="easbase_all.css"/>
+</head>
+
+<body>
+<div class="container">
+    <a id="toolBar_save1" ctrlrole="linkButton" class="ui-linkbutton enter2tab btn" data-domcreated="true" accesskey=""
+       tabindex="0">
+        <span class="ui-lb-text">保存</span></a>
+    <!-- 工具生成的HTML -->
+    <!-- 工具定义好属性之后，直接生成这样的HTML保存 -->
+    <!-- 工具也可以直接从这样的HTML解析出所需要的属性值 -->
+    <!-- 显示相关的属性直接生成DOM,变量相关的属性生成model对象 -->
+    <!-- model={click:"confirm",actionBinding:"confirm"} -->
+    <!-- caption,disabled,hidden,tagClass,style默认都是静态的，直接在html中显示了 -->
+    <!-- caption要多语种展示 -->
+    <a id="toolBar_save2" ctrlrole="linkButton" style="" tabindex="0" class="ui-linkbutton enter2tab btn"
+       @actionBinding="confirm" v-hidden="true">保存</a>
+    <script>
+        var model = {
+            confirm: function () {
+            }
+        }
+    </script>
+    <a id="toolBar_save3" ctrlrole="linkButton" style="" tabindex="0" class="ui-linkbutton enter2tab btn"
+       @click="confirm" v-disabled="{{view}}">{{caption}}</a>
+    <script>
+        var option = {
+            confirm: function () {
+                alert("confirm1");
+            },
+            view: _self.isView(), //函数规则.
+            caption: _self.isView() ? "保存" : "保存并提交" //表达式规则.
+        }
+
+        //需要将model中的属性代理到btnSave上方便访问。
+        //如何获取组件实例
+        //ONE:
+        var btnSave = waf("#toolBar_save");
+        //TWO:
+        var btnSave = waf.findCom("toolBar_save");
+        //激进
+        btnSave.confirm = function () {
+            alert("confirm2");
+        }
+        btnSave.caption = "提交";
+        //另外一种方式
+        btnSave.option("caption", "提交");
+        btnSave.option("confirm", function () {
+            alert("confirm3");
+        });
+        btnSave.option("view", true);
+        //如果在工具中没有定义规则，而又想在代码中动态修改，如何办？给予机会吗？
+        btnSave.option("tagClass", "blue");
+        //如果属性与DOM有关，触发VTree Patch，否则直接更改option
+        btnSave.addWatch({
+            tagClass: "vClass"
+        });
+        btnSave.tagClass = "";
+        //{{vClass-值表达式,@-代表函数}}
+        //增加事件监听
+        btnSave.addEventlistener("click",null);
+        //删除
+        btnSave.remove();
+        //LazyInit的处理
+        //动态的初始化。
+    </script>
+    <a id="toolBar_save4" ctrlrole="linkButton" style="" tabindex="0" class="ui-linkbutton enter2tab btn"
+       @actionBinding="confirm" v-hidden="{{show}}">保存</a>
+    <script>
+        var option = {
+            confirm: function () {
+                alert("confirm1");
+            },
+            show: _self.isView() //函数规则.
+        }
+    </script>
+    <a id="toolBar_save5" ctrlrole="linkButton" style="" tabindex="0" class="ui-linkbutton enter2tab btn"
+       @actionBinding="confirm">保存</a>
+    <script>
+        var option = {
+            confirm: function () {
+                alert("confirm1");
+            },
+            show: _self.isView() //函数规则.
+        }
+    </script>
+    <div class="ui-section" id="section" ctrlrole="section">
+        <div class="sheader">
+            <span class="arrow ui-section-arrow-open"><i></i></span>
+            <span class="title ui-section-minus">基本信息</span>
+            <span class="summary ui-section-summary" summary="( 单据类型：{billType} | 往来户：{asstActName} )">(单据编号:AP2016000070|单据日期:2016-06-22)</span>
+        </div>
+        <div class="content" id="section_content">
+            <a id="toolBar_save6" ctrlrole="linkButton" style="" tabindex="0" class="ui-linkbutton enter2tab btn"
+               @actionBinding="confirm">保存</a>
+        </div>
+    </div>
+</div>
+<script language='javascript' src='require.js'></script>
+<script language='javascript' src='common.js'></script>
+<script language='javascript' src='base.js'></script>
+<script language='javascript' src='wafall.js'></script>
+<script language='javascript' src='wafLinkbutton.js'></script>
+<script language='javascript' src='index.js'></script>
+</body>
+
+</html>

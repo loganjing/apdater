@@ -24,7 +24,8 @@ var config = {
         template:__dirname + '/src/template/index.js',
         immutable:__dirname + '/src/immutable/index.js',
         vdom:__dirname + '/src/vdom/index.js',
-        reduxall:__dirname + '/src/reduxall/index.js'
+        reduxall:__dirname + '/src/reduxall/index.js',
+        wafmvvm:__dirname + '/src/wafmvvm/index.js'
     },
     devtool: 'source-map',
     output: {
