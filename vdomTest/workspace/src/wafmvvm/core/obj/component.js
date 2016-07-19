@@ -1,5 +1,5 @@
 var WafObject = require('./classInherit');
-var render = require('../vdom/index');
+var render = require('../vdom/index').render;
 var waf = require('../global/index');
 
 //所有组件的超类

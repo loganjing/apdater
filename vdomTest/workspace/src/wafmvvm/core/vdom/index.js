@@ -1,6 +1,7 @@
 var diff = require('virtual-dom/diff');
 var patch = require('virtual-dom/patch');
 var createElement = require('virtual-dom/create-element');
+var h = require('virtual-dom/h');
 
 
 function render(newTree, oldTree,elem) {
@@ -32,4 +33,5 @@ function transfer(dom){
 
 render.transfer = transfer;
 
-module.exports = render;
+module.exports.render = render;
+module.exports.h = h;

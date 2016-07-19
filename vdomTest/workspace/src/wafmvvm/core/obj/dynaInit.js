@@ -1,4 +1,4 @@
-var render = require('../vdom/index');
+var render = require('../vdom/index').render;
 /**
  ** 兼容旧的版本增加的内容
  **/

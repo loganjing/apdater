@@ -11893,10 +11893,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	var Component = __webpack_require__(85).Component;
 	var FormComponent = __webpack_require__(85).FormComponent;
 	var ContainerComponent = __webpack_require__(85).ContainerComponent;
-	var render= __webpack_require__(88);
+	var vdom= __webpack_require__(88);
 	
 	var env =  __webpack_require__(92);
-	var h = __webpack_require__(33);
 	var initCache = __webpack_require__(96);
 	var initCompile = __webpack_require__(97);
 	var _ = __webpack_require__(93);
@@ -11910,8 +11909,8 @@ return /******/ (function(modules) { // webpackBootstrap
 		Component:Component,
 		FormComponent:FormComponent,
 		ContainerComponent:ContainerComponent,
-		h:h,
-		render:render,
+		h:vdom.h,
+		render:vdom.render,
 		env : env,
 		_:_
 	}
@@ -12090,7 +12089,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
 	var WafObject = __webpack_require__(87);
-	var render = __webpack_require__(88);
+	var render = __webpack_require__(88).render;
 	var waf = __webpack_require__(82);
 	
 	//所有组件的超类
@@ -12299,6 +12298,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var diff = __webpack_require__(51);
 	var patch = __webpack_require__(57);
 	var createElement = __webpack_require__(66);
+	var h = __webpack_require__(33);
 	
 	
 	function render(newTree, oldTree,elem) {
@@ -12330,13 +12330,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	render.transfer = transfer;
 	
-	module.exports = render;
+	module.exports.render = render;
+	module.exports.h = h;
 
 /***/ },
 /* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var render = __webpack_require__(88);
+	var render = __webpack_require__(88).render;
 	/**
 	 ** 兼容旧的版本增加的内容
 	 **/

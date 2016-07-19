@@ -2,10 +2,9 @@ var waf = require("./global/index");
 var Component = require("./obj/index").Component;
 var FormComponent = require("./obj/index").FormComponent;
 var ContainerComponent = require("./obj/index").ContainerComponent;
-var render= require("./vdom/index");
+var vdom= require("./vdom/index");
 
 var env =  require("./env");
-var h = require('virtual-dom/h');
 var initCache = require('./cache');
 var initCompile = require('./compile/index');
 var _ = require('./util');
@@ -19,8 +18,8 @@ module.exports = {
 	Component:Component,
 	FormComponent:FormComponent,
 	ContainerComponent:ContainerComponent,
-	h:h,
-	render:render,
+	h:vdom.h,
+	render:vdom.render,
 	env : env,
 	_:_
 }
