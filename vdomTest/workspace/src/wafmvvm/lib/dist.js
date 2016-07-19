@@ -54,46 +54,64 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var $ = __webpack_require__(1);
-	var h = __webpack_require__(33);
-	var diff = __webpack_require__(51);
-	var patch = __webpack_require__(57);
-	var createElement = __webpack_require__(66);
-	var linkbutton = __webpack_require__(81);
+	var waf = __webpack_require__(81).waf;
+	var WafLinkButton = __webpack_require__(98);
+	var WafSection = __webpack_require__(99);
 	
 	
-	
-	var $container = $('.container');
-	
-	function generateTree(options) {
-	    return h("a#" + (options.id) + ".ui-linkbutton.btn" + (options.tagClass ? options.tagClass : ""), {
-	        "attributes": {
-	            "ctrlrole": "linkButton",
-	            "tabindex": options.tabindex ? options.tabindex : 0
-	        }
-	    }, [
-	        options.iconCls ? h("span.ui-lb-icon.f-icon-cloud-upload") : "",
-	        options.caption ? h("span.ui-lb-text", [options.caption]) : ""
-	    ]);
-	
+	//onclick的模拟处理
+	window._self = {};
+	_self.btnClick = function() {
+	    alert(1);
 	}
-	var submitBtn = generateTree({
-	    caption: "修改",
-	    id: "submitBtn",
-	    iconCls: "f-icon-eraser"
-	});
-	submitBtn = createElement(submitBtn);
-	$container.append(submitBtn);
+	_self.confirm1 = function() {
+	    alert("confirm1 Action!");
+	}
+	_self.confirm2 = function() {
+	    alert("confirm2 Action!");
+	}
 	
-	//动态的创建btn
+	
 	var options = {
-	    caption: "修改1",
-	    id: "submitBtn1",
-	    iconCls: "f-icon-eraser"
-	};
-	var dom = linkbutton.createDOMFun(options);
-	$container.append(dom);
-	linkbutton.initFun(dom, options);
+	        caption: "修改2",
+	        id: "submitBtn2",
+	        iconCls: "f-icon-eraser",
+	        onclick: "btnClick",
+	        tabindex: 0
+	    };
+	
+	var $container = waf('.container');
+	
+	var btn = new WafLinkButton(options);
+	btn.appendTo($container[0]);
+	
+	//旧方法的兼容性处理
+	waf("#createBtn").click(function() {
+	    var $container = waf('.container');
+	
+	    options = {
+	        caption: "修改3",
+	        id: "submitBtn3",
+	        actionBinding: "confirm1",
+	        disable: true
+	    };
+	    dom = waf.createDOM("linkButton", options);
+	    $container.append(dom);
+	    lk1 = waf.initFun("linkButton", options, dom);
+	    lk1.enable();
+	})
+	
+	//section
+	options = {
+	    id:"section1",
+	    title:"基本信息",
+	    autoOpen:true
+	}
+	var sec = new WafSection(options);
+	sec.appendTo($container[0]);
+	
+	
+
 
 /***/ },
 /* 1 */
@@ -11731,7 +11749,131 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 67 */,
-/* 68 */,
+/* 68 */
+/***/ function(module, exports) {
+
+	// shim for using process in browser
+	
+	var process = module.exports = {};
+	
+	// cached from whatever global is present so that test runners that stub it
+	// don't break things.  But we need to wrap it in a try catch in case it is
+	// wrapped in strict mode code which doesn't define any globals.  It's inside a
+	// function because try/catches deoptimize in certain engines.
+	
+	var cachedSetTimeout;
+	var cachedClearTimeout;
+	
+	(function () {
+	  try {
+	    cachedSetTimeout = setTimeout;
+	  } catch (e) {
+	    cachedSetTimeout = function () {
+	      throw new Error('setTimeout is not defined');
+	    }
+	  }
+	  try {
+	    cachedClearTimeout = clearTimeout;
+	  } catch (e) {
+	    cachedClearTimeout = function () {
+	      throw new Error('clearTimeout is not defined');
+	    }
+	  }
+	} ())
+	var queue = [];
+	var draining = false;
+	var currentQueue;
+	var queueIndex = -1;
+	
+	function cleanUpNextTick() {
+	    if (!draining || !currentQueue) {
+	        return;
+	    }
+	    draining = false;
+	    if (currentQueue.length) {
+	        queue = currentQueue.concat(queue);
+	    } else {
+	        queueIndex = -1;
+	    }
+	    if (queue.length) {
+	        drainQueue();
+	    }
+	}
+	
+	function drainQueue() {
+	    if (draining) {
+	        return;
+	    }
+	    var timeout = cachedSetTimeout(cleanUpNextTick);
+	    draining = true;
+	
+	    var len = queue.length;
+	    while(len) {
+	        currentQueue = queue;
+	        queue = [];
+	        while (++queueIndex < len) {
+	            if (currentQueue) {
+	                currentQueue[queueIndex].run();
+	            }
+	        }
+	        queueIndex = -1;
+	        len = queue.length;
+	    }
+	    currentQueue = null;
+	    draining = false;
+	    cachedClearTimeout(timeout);
+	}
+	
+	process.nextTick = function (fun) {
+	    var args = new Array(arguments.length - 1);
+	    if (arguments.length > 1) {
+	        for (var i = 1; i < arguments.length; i++) {
+	            args[i - 1] = arguments[i];
+	        }
+	    }
+	    queue.push(new Item(fun, args));
+	    if (queue.length === 1 && !draining) {
+	        cachedSetTimeout(drainQueue, 0);
+	    }
+	};
+	
+	// v8 likes predictible objects
+	function Item(fun, array) {
+	    this.fun = fun;
+	    this.array = array;
+	}
+	Item.prototype.run = function () {
+	    this.fun.apply(null, this.array);
+	};
+	process.title = 'browser';
+	process.browser = true;
+	process.env = {};
+	process.argv = [];
+	process.version = ''; // empty string to avoid regexp issues
+	process.versions = {};
+	
+	function noop() {}
+	
+	process.on = noop;
+	process.addListener = noop;
+	process.once = noop;
+	process.off = noop;
+	process.removeListener = noop;
+	process.removeAllListeners = noop;
+	process.emit = noop;
+	
+	process.binding = function (name) {
+	    throw new Error('process.binding is not supported');
+	};
+	
+	process.cwd = function () { return '/' };
+	process.chdir = function (dir) {
+	    throw new Error('process.chdir is not supported');
+	};
+	process.umask = function() { return 0; };
+
+
+/***/ },
 /* 69 */,
 /* 70 */,
 /* 71 */,
@@ -11747,35 +11889,1685 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var $ = __webpack_require__(1);
+	var waf = __webpack_require__(82);
+	var Component = __webpack_require__(85).Component;
+	var FormComponent = __webpack_require__(85).FormComponent;
+	var ContainerComponent = __webpack_require__(85).ContainerComponent;
+	var render= __webpack_require__(88);
+	
+	var env =  __webpack_require__(92);
 	var h = __webpack_require__(33);
+	var initCache = __webpack_require__(96);
+	var initCompile = __webpack_require__(97);
+	var _ = __webpack_require__(93);
+	
+	
+	initCache(waf);
+	initCompile(waf);
+	
+	module.exports = {
+		waf:waf,
+		Component:Component,
+		FormComponent:FormComponent,
+		ContainerComponent:ContainerComponent,
+		h:h,
+		render:render,
+		env : env,
+		_:_
+	}
+
+/***/ },
+/* 82 */
+/***/ function(module, exports, __webpack_require__) {
+
+	//TODO:jquery可以被替换
+	var waf = __webpack_require__(1);
+	
+	//这里可以动态的增加静态方法
+	
+	var initDOMAssistant = __webpack_require__(83);
+	var initFnInvoke = __webpack_require__(84);
+	//var $ = require('jquery');
+	//TODO:想把组件实例的方法代理到jqeury对象上，可以直接调用，但可能产生冲突。
+	// var _$ = $;
+	// var $ = function(selector, context){
+	// 	var elem = _$(selector,context);
+	// 	//注入instance的方法到elem对象上，增加proxy
+	// 	if(elem.length>0 && elem[0].getAttribute("ctrlrole")){
+	//     }
+	//     //方法冲突怎么办？
+	//     return elem;
+	// }
+	
+	
+	
+	
+	initDOMAssistant(waf);
+	initFnInvoke(waf);
+	
+	module.exports = waf;
+
+
+/***/ },
+/* 83 */
+/***/ function(module, exports) {
+
+	
+	function initDOMAssistant(waf) {
+	    waf.dom = waf.dom || {};
+	    waf.dom.getOptions = function(elem) {
+	        //TODO:直接从页面的状态对象中获取，如果获取不到，则从DOM_ATTRIBUTE中获取。
+	        return void 0;
+	    }
+	
+	    waf.dom.buildOptionsByDom = function(elem) {
+	        var options = waf.dom.getOptions(elem) || {};
+	        var attrs = elem.attributes;
+	        for (var i = 0; i < attrs.length; i++) {
+	            //TODO:这里的属性应该根据组件中的名称过滤下，否则存在大小写之分
+	            options[attrs[i].name] = elem.getAttribute(attrs[i].name);
+	        }
+	        return options;
+	    }
+	
+	    waf.dom.buildOptions = function(elem,arg1,arg2,arg3){
+	        //TODO:暂时这样合并，后续以状态为主
+	        return waf.extend({},arg1||{},arg2||{},arg3||{});
+	    }
+	}
+	module.exports = initDOMAssistant;
+
+/***/ },
+/* 84 */
+/***/ function(module, exports, __webpack_require__) {
+
+	//TODO:后续去掉对jquery的依赖
+	var $ = __webpack_require__(1);
+	
+	function initFnInvoke(waf) {
+	    waf.fnUtils = waf.fnUtils || {};
+	    waf.fnUtils.registerFun = function(elem, eName, fn, params) {
+	        elem = $(elem);
+	        elem.unbind(eName).bind(eName, function(e) {
+	            waf.fnUtils.invokeFun(fn, elem, [e, params]);
+	        })
+	    }
+	    waf.fnUtils.parseFun = function(fn) {
+	        if (fn) {
+	            if ($.isFunction(fn)) {
+	                return fn;
+	            } else if (typeof fn == "string") {
+	                if (!fn.length) return null;
+	                //var levels = fn.split("."), nsobj = window;
+	                //以前业务代码就有不加_self的，默认加上后业务代码找不到方法出错，ci失败
+	                var levels = fn.split("."),
+	                    hasSelf = fn.indexOf("_self"),
+	                    nsobj;
+	                if (hasSelf > -1) {
+	                    nsobj = window;
+	                } else {
+	                    //兼容旧版本直接注册在window命名空间下的对象
+	                    nsobj = window[levels[0]] ? window : (window._self ? window._self : window);
+	                }
+	                //nsobj = hasSelf==-1?(window._self?window._self:window):window;                    
+	                for (var i = 0, len = levels.length; nsobj && i < len; ++i) {
+	                    nsobj = nsobj[levels[i]];
+	                }
+	                return nsobj;
+	            } else {
+	                return fn;
+	            }
+	        } else {
+	            return null;
+	        }
+	    }
+	    waf.fnUtils.invokeFun = function(fn, target, args) {
+	        if (!target) target = this;
+	        args = args || [];
+	        fn = waf.fnUtils.parseFun(fn);
+	        try {
+	            if (fn) {
+	                return fn.apply(target, args);
+	            }
+	        } catch (e) {
+	            console.log("Page exception：" + e.message);
+	            console.log(" Error Js：" + e.stack.split("at")[1]);
+	            throw e.message + "  Error Js：" + e.stack.split("at")[1];
+	        }
+	    },
+	    waf.fnUtils.invokeAction = function(fn, target, args) {
+	        waf.fnUtils.invokeFun(fn, target, args);
+	    }
+	}
+	
+	module.exports = initFnInvoke;
+
+/***/ },
+/* 85 */
+/***/ function(module, exports, __webpack_require__) {
+
+	//这里可以动态的增加静态方法
+	var Component = __webpack_require__(86).WafComponent;
+	var FormComponent = __webpack_require__(86).WafFormComponent;
+	var ContainerComponent = __webpack_require__(86).WafContainerComponent;
+	
+	var waf = __webpack_require__(82);
+	
+	//var initRegister = require("./register");
+	var initDynamic = __webpack_require__(89);
+	
+	//var initObjectDOM = require("./dom");
+	var initEvent = __webpack_require__(90);
+	var version = Component.version;
+	
+	//注册全局类方法
+	//if (!(version && version >= "8.3.0")) {
+	//兼容性考虑的
+	initDynamic(waf, Component);
+	//}
+	
+	var dom = __webpack_require__(91);
+	Component.mix({
+		appendTo:function(parent){
+	       dom.inject(this.elem,parent);
+		}
+	})
+	
+	//initRegister(Component);
+	
+	
+	//注册全局实例方法
+	//initObjectDOM(Component);
+	//initEvent(Component);
+	
+	
+	module.exports.Component = Component;
+	module.exports.FormComponent = FormComponent;
+	module.exports.ContainerComponent = ContainerComponent;
+
+/***/ },
+/* 86 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var WafObject = __webpack_require__(87);
+	var render = __webpack_require__(88);
+	var waf = __webpack_require__(82);
+	
+	//所有组件的超类
+	var WafComponent = WafObject.extend({
+	    template: "",
+	    initialize: function(options, elem) {
+	        //TODO:对状态的处理如何办？
+	        this.options = waf.dom.buildOptions(elem, this.constructor.defaultOptions, options);
+	        this.supr(options, elem);
+	        this.options = options;
+	        if (!elem) {
+	            var tree = this.generateTree(options);
+	            elem = render(tree);
+	        }
+	        this.elem = elem;
+	        this.tree = this.elem.tree;
+	        //cache
+	        this.elem.inst = this;
+	    }
+	});
+	
+	waf.extend(WafComponent, {
+	    register: function(meta, fn) {
+	        this.components = this.components || {};
+	        this.components[meta.name] = {
+	            constructor: fn,
+	            generateTree: meta.generateTree
+	        };
+	    },
+	    afterDef: function(supr, o) {
+	        this.afterDef = supr.afterDef;
+	        //加载完JS执行之后就直接注册
+	        if (o.name) {
+	            WafComponent.register(o, this);
+	        }
+	        //template的解析
+	        if (o.template && typeof o.template == "string") {
+	            //TODO:动态生成一个generateTree的函数，并且将此函数注册到原型中
+	            //这个template的解析实际上可以放在构建的时候直接解析完成
+	            //运行期拿到的直接就是完整的generateTree.
+	        }
+	    }
+	});
+	
+	WafComponent.mix({
+	    generateTree: function(options) {
+	        //子类覆盖的方法
+	    },
+	    set: function(key, value) {
+	        var oldTree = this.elem.tree;
+	        var options = this.options;
+	        var elem = this.elem;
+	        options[key] = value;
+	        var newTree = this.generateTree(this.options);
+	        this.elem = render(newTree, oldTree, elem);
+	        this.tree = newTree;
+	    },
+	    get: function(key) {
+	        return this.options[key];
+	    },
+	    hide: function() {
+	        this.set("hidden", true);
+	    },
+	    show: function() {
+	        this.set("hidden", false);
+	    }
+	});
+	
+	//Form组件超类
+	var WafFormComponent = WafComponent.extend({
+	    enable: function() {
+	        this.set("disable", false);
+	    },
+	    disable: function() {
+	        this.set("disable", true);
+	    }
+	});
+	
+	//Container组件超类
+	var WafContainerComponent = WafComponent.extend({
+	    appendChildren: function(source, pos) {
+	        //pos并且为数字的话
+	        //var content = $(this.element).children("div.content");
+	        //$.dynamicutil.appendChildren(content, source, pos);
+	    },
+	    removeChildren: function(source) {
+	        //如果传递进来的是id，转换source为jquery对象
+	        // if (typeof source == "string") {
+	        //     if (source.substr(0, 1) != "#") {
+	        //         source = "#" + source;
+	        //     }
+	        //     source = $(source);
+	        // }
+	        // var content = $(this.element).children("div.content");
+	        // $.dynamicutil.removeChildren(content, source);
+	    }
+	
+	});
+	
+	//注册函数
+	//initRegister(WafComponent);
+	
+	module.exports.WafComponent = WafComponent;
+	module.exports.WafFormComponent = WafFormComponent;
+	module.exports.WafContainerComponent = WafContainerComponent;
+
+/***/ },
+/* 87 */
+/***/ function(module, exports) {
+
+	/**
+	 ** https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Operators/super
+	 ** 不能使用super, super是EMCSCRIPT6关键字，只能使用supr
+	 **/
+	var f = 'function',
+	    fnTest = /xyz/.test(function() {
+	        xyz
+	    }) ? /\bsupr\b/ : /.*/,
+	    proto = 'prototype';
+	
+	function isFn(o) {
+	    return typeof o === f
+	}
+	
+	function klass(o) {
+	    return extend.call(isFn(o) ? o : function() {}, o, 1)
+	}
+	
+	function wrap(k, fn, supr) {
+	    return function() {
+	        var tmp = this.supr
+	        this.supr = supr[proto][k]
+	        var undef = {}.fabricatedUndefined
+	        var ret = undef
+	        try {
+	            ret = fn.apply(this, arguments)
+	        } finally {
+	            this.supr = tmp
+	        }
+	        return ret
+	    }
+	}
+	
+	function process(what, o, supr) {
+	    for (var k in o) {
+	        if (o.hasOwnProperty(k)) {
+	            what[k] = isFn(o[k]) && isFn(supr[proto][k]) && fnTest.test(o[k]) ? wrap(k, o[k], supr) : o[k]
+	        }
+	    }
+	}
+	
+	function extend(o, fromSub) {
+	    // must redefine noop each time so it doesn't inherit from previous arbitrary classes
+	    function noop() {}
+	    noop[proto] = this[proto]
+	    var supr = this,
+	        prototype = new noop(),
+	        isFunction = isFn(o),
+	        _constructor = isFunction ? o : this,
+	        _methods = isFunction ? {} : o
+	
+	    function fn() {
+	        if (this.initialize) this.initialize.apply(this, arguments)
+	        else {
+	            fromSub || isFunction && supr.apply(this, arguments)
+	            _constructor.apply(this, arguments)
+	        }
+	    }
+	
+	    fn.mix = function(o) {
+	        process(prototype, o, supr)
+	        fn[proto] = prototype
+	        return this
+	    }
+	
+	    fn.mix.call(fn, _methods).prototype.constructor = fn
+	
+	    fn.extend = arguments.callee
+	    fn[proto].implement = function(o, optFn) {
+	        o = typeof o == 'string' ? (function() {
+	            var obj = {}
+	            obj[o] = optFn
+	            return obj
+	        }()) : o
+	        process(this, o, supr)
+	        return this
+	    }
+	    supr.afterDef && supr.afterDef.call(fn,supr,o);
+	    return fn;
+	}
+	
+	
+	//顶级命名空间
+	var WafObject = klass({
+	    initialize:function(options,elem){
+	        this.version = "8.3.0";
+	    }
+	});
+	
+	module.exports = WafObject;
+
+/***/ },
+/* 88 */
+/***/ function(module, exports, __webpack_require__) {
+
 	var diff = __webpack_require__(51);
 	var patch = __webpack_require__(57);
 	var createElement = __webpack_require__(66);
 	
 	
-	function generateTree(options) {
-	    return h("a#" + (options.id) + ".ui-linkbutton.btn" + (options.tagClass ? options.tagClass : ""), {
-	        "attributes": {
-	            "ctrlrole": "linkButton",
-	            "tabindex": options.tabindex ? options.tabindex : 0,
-	            "actionBinding": options.actionBinding
+	function render(newTree, oldTree,elem) {
+		//TODO:如果oldTree是一个DOM，需要自动的从DOM构建Tree
+		var ret ;
+	    if (!oldTree) {
+	        ret = createElement(newTree);
+	    } else {
+	        var patches = diff(oldTree, newTree);
+	        ret = patch(elem, patches);
+	    }
+	    ret.tree = newTree;
+	    return ret;
+	}
+	
+	
+	function innerTransfer(dom){
+	    var tree;
+	    //转换
+	    dom.tree = tree;
+	    return "";
+	}
+	
+	//将dom转换成tree对象
+	function transfer(dom){
+	    if(dom.tree) return dom.tree
+	    else innerTransfer(dom);
+	}
+	
+	render.transfer = transfer;
+	
+	module.exports = render;
+
+/***/ },
+/* 89 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var render = __webpack_require__(88);
+	/**
+	 ** 兼容旧的版本增加的内容
+	 **/
+	function initDynamic(waf, Component) {
+	    waf.createDOM = function(type, options) {
+	        var meta = Component.components[type];
+	        if (meta.generateTree && meta.constructor) {
+	        	//TODO:为DOM生成唯一ID,缓存使用
+	            var tree = meta.generateTree(waf.dom.buildOptions(null,meta.constructor.defaultOptions,options));
+	            var elem = render(tree);
+	            return elem;
 	        }
+	    }
+	    waf.initFun = function(type, options, dom) {
+	        var meta = Component.components[type];
+	        if (meta.constructor) {
+	        	options = waf.dom.buildOptions(dom,meta.constructor.defaultOptions,options);
+	            return new meta.constructor(options, dom);
+	        }
+	    }
+	}
+	
+	module.exports = initDynamic;
+
+/***/ },
+/* 90 */
+/***/ function(module, exports) {
+
+	function EventEmitter() {
+	    this.eventBus = {};
+	}
+	EventEmitter.prototype = {
+	    on: function(eName, handler) {
+	        this.eventBus[eName] = handler;
+	    },
+	    off: function(eName) {
+	        delete this.eventBus[eName];
+	    },
+	    emit: function(eName) {
+	        var handler = this.eventBus[eName];
+	        if (handler) {
+	            var args = [].slice.call(arguments, 1);
+	            handler.apply(this, args);
+	        }
+	    }
+	}
+	
+	function initEvent(Component){
+	    
+	}
+	
+	module.exports = initEvent;
+
+/***/ },
+/* 91 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// thanks for angular && mootools for some concise&cross-platform  implemention
+	// =====================================
+	
+	// The MIT License
+	// Copyright (c) 2010-2014 Google, Inc. http://angularjs.org
+	
+	// ---
+	// license: MIT-style license. http://mootools.net
+	
+	
+	var dom = module.exports;
+	var env = __webpack_require__(92);
+	var _ = __webpack_require__(93);
+	var consts = __webpack_require__(95);
+	var tNode = document.createElement('div')
+	var addEvent, removeEvent;
+	var noop = function() {}
+	
+	var namespaces = consts.NAMESPACE;
+	
+	dom.body = document.body;
+	
+	dom.doc = document;
+	
+	// camelCase
+	function camelCase(str) {
+	    return ("" + str).replace(/-\D/g, function(match) {
+	        return match.charAt(1).toUpperCase();
+	    });
+	}
+	
+	
+	dom.tNode = tNode;
+	
+	if (tNode.addEventListener) {
+	    addEvent = function(node, type, fn) {
+	        node.addEventListener(type, fn, false);
+	    }
+	    removeEvent = function(node, type, fn) {
+	        node.removeEventListener(type, fn, false)
+	    }
+	} else {
+	    addEvent = function(node, type, fn) {
+	        node.attachEvent('on' + type, fn);
+	    }
+	    removeEvent = function(node, type, fn) {
+	        node.detachEvent('on' + type, fn);
+	    }
+	}
+	
+	
+	
+	
+	dom.find = function(sl) {
+	    if (document.querySelector) {
+	        try {
+	            return document.querySelector(sl);
+	        } catch (e) {
+	
+	        }
+	    }
+	    if (sl.indexOf('#') !== -1) return document.getElementById(sl.slice(1));
+	}
+	
+	
+	dom.inject = function(node, refer, position) {
+	
+	    position = position || 'bottom';
+	    if (!node) return;
+	    if (Array.isArray(node)) {
+	        var tmp = node;
+	        node = dom.fragment();
+	        for (var i = 0, len = tmp.length; i < len; i++) {
+	            node.appendChild(tmp[i])
+	        }
+	    }
+	
+	    var firstChild, next;
+	    switch (position) {
+	        case 'bottom':
+	            refer.appendChild(node);
+	            break;
+	        case 'top':
+	            if (firstChild = refer.firstChild) {
+	                refer.insertBefore(node, refer.firstChild);
+	            } else {
+	                refer.appendChild(node);
+	            }
+	            break;
+	        case 'after':
+	            if (next = refer.nextSibling) {
+	                next.parentNode.insertBefore(node, next);
+	            } else {
+	                refer.parentNode.appendChild(node);
+	            }
+	            break;
+	        case 'before':
+	            refer.parentNode.insertBefore(node, refer);
+	    }
+	}
+	
+	
+	
+	
+	
+	dom.id = function(id) {
+	    return document.getElementById(id);
+	}
+	
+	// createElement 
+	dom.create = function(type, ns, attrs) {
+	    if (ns === 'svg') {
+	        if (!env.svg) throw Error('the env need svg support')
+	        ns = namespaces.svg;
+	    }
+	    return !ns ? document.createElement(type) : document.createElementNS(ns, type);
+	}
+	
+	// documentFragment
+	dom.fragment = function() {
+	    return document.createDocumentFragment();
+	}
+	
+	
+	
+	var specialAttr = {
+	    'class': function(node, value) {
+	        ('className' in node && (!node.namespaceURI || node.namespaceURI === namespaces.html)) ?
+	            node.className = (value || '') : node.setAttribute('class', value);
+	    },
+	    'for': function(node, value) {
+	        ('htmlFor' in node) ? node.htmlFor = value : node.setAttribute('for', value);
+	    },
+	    'style': function(node, value) {
+	        (node.style) ? node.style.cssText = value : node.setAttribute('style', value);
+	    },
+	    'value': function(node, value) {
+	        node.value = (value != null) ? value : '';
+	    }
+	}
+	
+	
+	// attribute Setter & Getter
+	dom.attr = function(node, name, value) {
+	    if (_.isBooleanAttr(name)) {
+	        if (typeof value !== 'undefined') {
+	            if (!!value) {
+	                node[name] = true;
+	                node.setAttribute(name, name);
+	                // lt ie7 . the javascript checked setting is in valid
+	                //http://bytes.com/topic/javascript/insights/799167-browser-quirk-dynamically-appended-checked-checkbox-does-not-appear-checked-ie
+	                if (dom.msie && dom.msie <= 7) node.defaultChecked = true
+	            } else {
+	                node[name] = false;
+	                node.removeAttribute(name);
+	            }
+	        } else {
+	            return (node[name] ||
+	                (node.attributes.getNamedItem(name) || noop).specified) ? name : undefined;
+	        }
+	    } else if (typeof(value) !== 'undefined') {
+	        // if in specialAttr;
+	        if (specialAttr[name]) specialAttr[name](node, value);
+	        else if (value === null) node.removeAttribute(name)
+	        else node.setAttribute(name, value);
+	    } else if (node.getAttribute) {
+	        // the extra argument "2" is to get the right thing for a.href in IE, see jQuery code
+	        // some elements (e.g. Document) don't have get attribute, so return undefined
+	        var ret = node.getAttribute(name, 2);
+	        // normalize non-existing attributes to undefined (as jQuery)
+	        return ret === null ? undefined : ret;
+	    }
+	}
+	
+	
+	dom.on = function(node, type, handler) {
+	    var types = type.split(' ');
+	    handler.real = function(ev) {
+	        var $event = new Event(ev);
+	        $event.origin = node;
+	        handler.call(node, $event);
+	    }
+	    types.forEach(function(type) {
+	        type = fixEventName(node, type);
+	        addEvent(node, type, handler.real);
+	    });
+	}
+	dom.off = function(node, type, handler) {
+	    var types = type.split(' ');
+	    handler = handler.real || handler;
+	    types.forEach(function(type) {
+	        type = fixEventName(node, type);
+	        removeEvent(node, type, handler);
+	    })
+	}
+	
+	
+	dom.text = (function() {
+	    var map = {};
+	    if (dom.msie && dom.msie < 9) {
+	        map[1] = 'innerText';
+	        map[3] = 'nodeValue';
+	    } else {
+	        map[1] = map[3] = 'textContent';
+	    }
+	
+	    return function(node, value) {
+	        var textProp = map[node.nodeType];
+	        if (value == null) {
+	            return textProp ? node[textProp] : '';
+	        }
+	        node[textProp] = value;
+	    }
+	})();
+	
+	
+	dom.html = function(node, html) {
+	    if (typeof html === "undefined") {
+	        return node.innerHTML;
+	    } else {
+	        node.innerHTML = html;
+	    }
+	}
+	
+	dom.replace = function(node, replaced) {
+	    if (replaced.parentNode) replaced.parentNode.replaceChild(node, replaced);
+	}
+	
+	dom.remove = function(node) {
+	    if (node.parentNode) node.parentNode.removeChild(node);
+	}
+	
+	// css Settle & Getter from angular
+	// =================================
+	// it isnt computed style 
+	dom.css = function(node, name, value) {
+	    if (_.typeOf(name) === "object") {
+	        for (var i in name) {
+	            if (name.hasOwnProperty(i)) {
+	                dom.css(node, i, name[i]);
+	            }
+	        }
+	        return;
+	    }
+	    if (typeof value !== "undefined") {
+	
+	        name = camelCase(name);
+	        if (name) node.style[name] = value;
+	
+	    } else {
+	
+	        var val;
+	        if (dom.msie <= 8) {
+	            // this is some IE specific weirdness that jQuery 1.6.4 does not sure why
+	            val = node.currentStyle && node.currentStyle[name];
+	            if (val === '') val = 'auto';
+	        }
+	        val = val || node.style[name];
+	        if (dom.msie <= 8) {
+	            val = val === '' ? undefined : val;
+	        }
+	        return val;
+	    }
+	}
+	
+	dom.addClass = function(node, className) {
+	    var current = node.className || "";
+	    if ((" " + current + " ").indexOf(" " + className + " ") === -1) {
+	        node.className = current ? (current + " " + className) : className;
+	    }
+	}
+	
+	dom.delClass = function(node, className) {
+	    var current = node.className || "";
+	    node.className = (" " + current + " ").replace(" " + className + " ", " ").trim();
+	}
+	
+	dom.hasClass = function(node, className) {
+	    var current = node.className || "";
+	    return (" " + current + " ").indexOf(" " + className + " ") !== -1;
+	}
+	
+	
+	
+	// simple Event wrap
+	
+	//http://stackoverflow.com/questions/11068196/ie8-ie7-onchange-event-is-emited-only-after-repeated-selection
+	function fixEventName(elem, name) {
+	    return (name === 'change' && dom.msie < 9 &&
+	        (elem && elem.tagName && elem.tagName.toLowerCase() === 'input' &&
+	            (elem.type === 'checkbox' || elem.type === 'radio')
+	        )
+	    ) ? 'click' : name;
+	}
+	
+	var rMouseEvent = /^(?:click|dblclick|contextmenu|DOMMouseScroll|mouse(?:\w+))$/
+	var doc = document;
+	doc = (!doc.compatMode || doc.compatMode === 'CSS1Compat') ? doc.documentElement : doc.body;
+	
+	function Event(ev) {
+	    ev = ev || window.event;
+	    if (ev._fixed) return ev;
+	    this.event = ev;
+	    this.target = ev.target || ev.srcElement;
+	
+	    var type = this.type = ev.type;
+	    var button = this.button = ev.button;
+	
+	    // if is mouse event patch pageX
+	    if (rMouseEvent.test(type)) { //fix pageX
+	        this.pageX = (ev.pageX != null) ? ev.pageX : ev.clientX + doc.scrollLeft;
+	        this.pageY = (ev.pageX != null) ? ev.pageY : ev.clientY + doc.scrollTop;
+	        if (type === 'mouseover' || type === 'mouseout') { // fix relatedTarget
+	            var related = ev.relatedTarget || ev[(type === 'mouseover' ? 'from' : 'to') + 'Element'];
+	            while (related && related.nodeType === 3) related = related.parentNode;
+	            this.relatedTarget = related;
+	        }
+	    }
+	    // if is mousescroll
+	    if (type === 'DOMMouseScroll' || type === 'mousewheel') {
+	        // ff ev.detail: 3    other ev.wheelDelta: -120
+	        this.wheelDelta = (ev.wheelDelta) ? ev.wheelDelta / 120 : -(ev.detail || 0) / 3;
+	    }
+	
+	    // fix which
+	    this.which = ev.which || ev.keyCode;
+	    if (!this.which && button !== undefined) {
+	        // http://api.jquery.com/event.which/ use which
+	        this.which = (button & 1 ? 1 : (button & 2 ? 3 : (button & 4 ? 2 : 0)));
+	    }
+	    this._fixed = true;
+	}
+	
+	_.extend(Event.prototype, {
+	    immediateStop: _.isFalse,
+	    stop: function() {
+	        this.preventDefault().stopPropagation();
+	    },
+	    preventDefault: function() {
+	        if (this.event.preventDefault) this.event.preventDefault();
+	        else this.event.returnValue = false;
+	        return this;
+	    },
+	    stopPropagation: function() {
+	        if (this.event.stopPropagation) this.event.stopPropagation();
+	        else this.event.cancelBubble = true;
+	        return this;
+	    },
+	    stopImmediatePropagation: function() {
+	        if (this.event.stopImmediatePropagation) this.event.stopImmediatePropagation();
+	    }
+	})
+	
+	
+	dom.nextFrame = (function() {
+	    var request = window.requestAnimationFrame ||
+	        window.webkitRequestAnimationFrame ||
+	        window.mozRequestAnimationFrame ||
+	        function(callback) {
+	            setTimeout(callback, 16)
+	        }
+	
+	    var cancel = window.cancelAnimationFrame ||
+	        window.webkitCancelAnimationFrame ||
+	        window.mozCancelAnimationFrame ||
+	        window.webkitCancelRequestAnimationFrame ||
+	        function(tid) {
+	            clearTimeout(tid)
+	        }
+	
+	    return function(callback) {
+	        var id = request(callback);
+	        return function() {
+	            cancel(id);
+	        }
+	    }
+	})();
+	
+	// 3ks for angular's raf  service
+	var k
+	dom.nextReflow = dom.msie ? function(callback) {
+	    return dom.nextFrame(function() {
+	        k = document.body.offsetWidth;
+	        callback();
+	    })
+	} : dom.nextFrame;
+
+
+/***/ },
+/* 92 */
+/***/ function(module, exports) {
+
+	exports.inBrowser = typeof window !== 'undefined' && Object.prototype.toString.call(window) !== '[object Object]';
+	var UA = exports.inBrowser && window.navigator.userAgent.toLowerCase();
+	exports.isIos = UA && /(iphone|ipad|ipod|ios)/i.test(UA);
+	exports.isWechat = UA && UA.indexOf('micromessenger') > 0;
+	exports.svg = (function(){
+	  return typeof document !== "undefined" && document.implementation.hasFeature( "http://www.w3.org/TR/SVG11/feature#BasicStructure", "1.1" );
+	})();
+
+/***/ },
+/* 93 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(global, setImmediate) {/**
+	 ** copy from jslib. TODO:需要整理
+	 **/
+	var _ = module.exports;
+	
+	var slice = [].slice;
+	var o2str = ({}).toString;
+	var win = typeof window !== 'undefined' ? window : global;
+	
+	
+	_.bind = function(fn, ctx) {
+	    return function(a) {
+	        var l = arguments.length
+	        return l ? l > 1 ? fn.apply(ctx, arguments) : fn.call(ctx, a) : fn.call(ctx)
+	    }
+	}
+	
+	_.noop = function() {};
+	_.uid = (function() {
+	    var _uid = 0;
+	    return function() {
+	        return _uid++;
+	    }
+	})();
+	
+	_.extend = function(o1, o2, override) {
+	    // if(_.typeOf(override) === 'array'){
+	    //  for(var i = 0, len = override.length; i < len; i++ ){
+	    //   var key = override[i];
+	    //   o1[key] = o2[key];
+	    //  } 
+	    // }else{
+	    for (var i in o2) {
+	        if (typeof o1[i] === "undefined" || override === true) {
+	            o1[i] = o2[i]
+	        }
+	    }
+	    // }
+	    return o1;
+	}
+	
+	_.keys = function(obj) {
+	    if (Object.keys) return Object.keys(obj);
+	    var res = [];
+	    for (var i in obj)
+	        if (obj.hasOwnProperty(i)) {
+	            res.push(i);
+	        }
+	    return res;
+	}
+	
+	_.varName = 'd';
+	_.setName = 'p_';
+	_.ctxName = 'c';
+	_.extName = 'e';
+	
+	_.rWord = /^[\$\w]+$/;
+	_.rSimpleAccessor = /^[\$\w]+(\.[\$\w]+)*$/;
+	
+	_.nextTick = typeof setImmediate === 'function' ?
+	    setImmediate.bind(win) :
+	    function(callback) {
+	        setTimeout(callback, 0)
+	}
+	
+	
+	
+	_.prefix = "var " + _.varName + "=" + _.ctxName + ".data;" + _.extName + "=" + _.extName + "||'';";
+	
+	
+	_.slice = function(obj, start, end) {
+	    var res = [];
+	    for (var i = start || 0, len = end || obj.length; i < len; i++) {
+	        var item = obj[i];
+	        res.push(item)
+	    }
+	    return res;
+	}
+	
+	_.typeOf = function(o) {
+	    return o == null ? String(o) : o2str.call(o).slice(8, -1).toLowerCase();
+	}
+	
+	
+	_.makePredicate = function makePredicate(words, prefix) {
+	    if (typeof words === "string") {
+	        words = words.split(" ");
+	    }
+	    var f = "",
+	        cats = [];
+	    out: for (var i = 0; i < words.length; ++i) {
+	        for (var j = 0; j < cats.length; ++j) {
+	            if (cats[j][0].length === words[i].length) {
+	                cats[j].push(words[i]);
+	                continue out;
+	            }
+	        }
+	        cats.push([words[i]]);
+	    }
+	
+	    function compareTo(arr) {
+	        if (arr.length === 1) return f += "return str === '" + arr[0] + "';";
+	        f += "switch(str){";
+	        for (var i = 0; i < arr.length; ++i) {
+	            f += "case '" + arr[i] + "':";
+	        }
+	        f += "return true}return false;";
+	    }
+	
+	    // When there are more than three length categories, an outer
+	    // switch first dispatches on the lengths, to save on comparisons.
+	    if (cats.length > 3) {
+	        cats.sort(function(a, b) {
+	            return b.length - a.length;
+	        });
+	        f += "switch(str.length){";
+	        for (var i = 0; i < cats.length; ++i) {
+	            var cat = cats[i];
+	            f += "case " + cat[0].length + ":";
+	            compareTo(cat);
+	        }
+	        f += "}";
+	
+	        // Otherwise, simply generate a flat `switch` statement.
+	    } else {
+	        compareTo(words);
+	    }
+	    return new Function("str", f);
+	}
+	
+	
+	_.trackErrorPos = (function() {
+	    // linebreak
+	    var lb = /\r\n|[\n\r\u2028\u2029]/g;
+	    var minRange = 20,
+	        maxRange = 20;
+	
+	    function findLine(lines, pos) {
+	        var tmpLen = 0;
+	        for (var i = 0, len = lines.length; i < len; i++) {
+	            var lineLen = (lines[i] || "").length;
+	
+	            if (tmpLen + lineLen > pos) {
+	                return {
+	                    num: i,
+	                    line: lines[i],
+	                    start: pos - i - tmpLen,
+	                    prev: lines[i - 1],
+	                    next: lines[i + 1]
+	                };
+	            }
+	            // 1 is for the linebreak
+	            tmpLen = tmpLen + lineLen;
+	        }
+	    }
+	
+	    function formatLine(str, start, num, target) {
+	        var len = str.length;
+	        var min = start - minRange;
+	        if (min < 0) min = 0;
+	        var max = start + maxRange;
+	        if (max > len) max = len;
+	
+	        var remain = str.slice(min, max);
+	        var prefix = "[" + (num + 1) + "] " + (min > 0 ? ".." : "")
+	        var postfix = max < len ? ".." : "";
+	        var res = prefix + remain + postfix;
+	        if (target) res += "\n" + new Array(start - min + prefix.length + 1).join(" ") + "^^^";
+	        return res;
+	    }
+	    return function(input, pos) {
+	        if (pos > input.length - 1) pos = input.length - 1;
+	        lb.lastIndex = 0;
+	        var lines = input.split(lb);
+	        var line = findLine(lines, pos);
+	        var start = line.start,
+	            num = line.num;
+	
+	        return (line.prev ? formatLine(line.prev, start, num - 1) + '\n' : '') +
+	            formatLine(line.line, start, num, true) + '\n' +
+	            (line.next ? formatLine(line.next, start, num + 1) + '\n' : '');
+	
+	    }
+	})();
+	
+	
+	var ignoredRef = /\((\?\!|\?\:|\?\=)/g;
+	_.findSubCapture = function(regStr) {
+	    var left = 0,
+	        right = 0,
+	        len = regStr.length,
+	        ignored = regStr.match(ignoredRef); // ignored uncapture
+	    if (ignored) ignored = ignored.length
+	    else ignored = 0;
+	    for (; len--;) {
+	        var letter = regStr.charAt(len);
+	        if (len === 0 || regStr.charAt(len - 1) !== "\\") {
+	            if (letter === "(") left++;
+	            if (letter === ")") right++;
+	        }
+	    }
+	    if (left !== right) throw "RegExp: " + regStr + "'s bracket is not marched";
+	    else return left - ignored;
+	};
+	
+	
+	_.escapeRegExp = function(str) { // Credit: XRegExp 0.6.1 (c) 2007-2008 Steven Levithan <http://stevenlevithan.com/regex/xregexp/> MIT License
+	    return str.replace(/[-[\]{}()*+?.\\^$|,#\s]/g, function(match) {
+	        return '\\' + match;
+	    });
+	};
+	
+	
+	
+	
+	
+	/**
+	clone
+	*/
+	_.clone = function clone(obj) {
+	    var type = _.typeOf(obj);
+	    if (type === 'array') {
+	        var cloned = [];
+	        for (var i = 0, len = obj.length; i < len; i++) {
+	            cloned[i] = obj[i]
+	        }
+	        return cloned;
+	    }
+	    if (type === 'object') {
+	        var cloned = {};
+	        for (var i in obj)
+	            if (obj.hasOwnProperty(i)) {
+	                cloned[i] = obj[i];
+	            }
+	        return cloned;
+	    }
+	    return obj;
+	}
+	
+	_.equals = function(now, old) {
+	    var type = typeof now;
+	    if (type === 'number' && typeof old === 'number' && isNaN(now) && isNaN(old)) return true
+	    return now === old;
+	}
+	
+	var dash = /-([a-z])/g;
+	_.camelCase = function(str) {
+	    return str.replace(dash, function(all, capture) {
+	        return capture.toUpperCase();
+	    })
+	}
+	
+	
+	
+	_.throttle = function throttle(func, wait) {
+	    var wait = wait || 100;
+	    var context, args, result;
+	    var timeout = null;
+	    var previous = 0;
+	    var later = function() {
+	        previous = +new Date;
+	        timeout = null;
+	        result = func.apply(context, args);
+	        context = args = null;
+	    };
+	    return function() {
+	        var now = +new Date;
+	        var remaining = wait - (now - previous);
+	        context = this;
+	        args = arguments;
+	        if (remaining <= 0 || remaining > wait) {
+	            clearTimeout(timeout);
+	            timeout = null;
+	            previous = now;
+	            result = func.apply(context, args);
+	            context = args = null;
+	        } else if (!timeout) {
+	            timeout = setTimeout(later, remaining);
+	        }
+	        return result;
+	    };
+	};
+	
+	// hogan escape
+	// ==============
+	_.escape = (function() {
+	    var rAmp = /&/g,
+	        rLt = /</g,
+	        rGt = />/g,
+	        rApos = /\'/g,
+	        rQuot = /\"/g,
+	        hChars = /[&<>\"\']/;
+	
+	    return function(str) {
+	        return hChars.test(str) ?
+	            str
+	            .replace(rAmp, '&amp;')
+	            .replace(rLt, '&lt;')
+	            .replace(rGt, '&gt;')
+	            .replace(rApos, '&#39;')
+	            .replace(rQuot, '&quot;') :
+	            str;
+	    }
+	})();
+	
+	_.cache = function(max) {
+	    max = max || 1000;
+	    var keys = [],
+	        cache = {};
+	    return {
+	        set: function(key, value) {
+	            if (keys.length > this.max) {
+	                cache[keys.shift()] = undefined;
+	            }
+	            // 
+	            if (cache[key] === undefined) {
+	                keys.push(key);
+	            }
+	            cache[key] = value;
+	            return value;
+	        },
+	        get: function(key) {
+	            if (key === undefined) return cache;
+	            return cache[key];
+	        },
+	        max: max,
+	        len: function() {
+	            return keys.length;
+	        }
+	    };
+	}
+	
+	
+	// handle the same logic on component's `on-*` and element's `on-*`
+	// return the fire object
+	_.handleEvent = function(value, type) {
+	    var self = this,
+	        evaluate;
+	    if (value.type === 'expression') { // if is expression, go evaluated way
+	        evaluate = value.get;
+	    }
+	    if (evaluate) {
+	        return function fire(obj) {
+	            self.$update(function() {
+	                var data = this.data;
+	                data.$event = obj;
+	                var res = evaluate(self);
+	                if (res === false && obj && obj.preventDefault) obj.preventDefault();
+	                data.$event = undefined;
+	            })
+	
+	        }
+	    } else {
+	        return function fire() {
+	            var args = slice.call(arguments)
+	            args.unshift(value);
+	            self.$update(function() {
+	                self.$emit.apply(self, args);
+	            })
+	        }
+	    }
+	}
+	
+	// only call once
+	_.once = function(fn) {
+	    var time = 0;
+	    return function() {
+	        if (time++ === 0) fn.apply(this, arguments);
+	    }
+	}
+	
+	_.fixObjStr = function(str) {
+	    if (str.trim().indexOf('{') !== 0) {
+	        return '{' + str + '}';
+	    }
+	    return str;
+	}
+	
+	
+	_.map = function(array, callback) {
+	    var res = [];
+	    for (var i = 0, len = array.length; i < len; i++) {
+	        res.push(callback(array[i], i));
+	    }
+	    return res;
+	}
+	
+	function log(msg, type) {
+	    if (typeof console !== "undefined") console[type || "log"](msg);
+	}
+	
+	_.log = log;
+	
+	//http://www.w3.org/html/wg/drafts/html/master/single-page.html#void-elements
+	_.isVoidTag = _.makePredicate("area base br col embed hr img input keygen link menuitem meta param source track wbr r-content");
+	_.isBooleanAttr = _.makePredicate('selected checked disabled readonly required open autofocus controls autoplay compact loop defer multiple');
+	
+	_.isFalse - function() {
+	    return false
+	}
+	_.isTrue - function() {
+	    return true
+	}
+	
+	_.isExpr = function(expr) {
+	    return expr && expr.type === 'expression';
+	}
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(94).setImmediate))
+
+/***/ },
+/* 94 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(setImmediate, clearImmediate) {var nextTick = __webpack_require__(68).nextTick;
+	var apply = Function.prototype.apply;
+	var slice = Array.prototype.slice;
+	var immediateIds = {};
+	var nextImmediateId = 0;
+	
+	// DOM APIs, for completeness
+	
+	exports.setTimeout = function() {
+	  return new Timeout(apply.call(setTimeout, window, arguments), clearTimeout);
+	};
+	exports.setInterval = function() {
+	  return new Timeout(apply.call(setInterval, window, arguments), clearInterval);
+	};
+	exports.clearTimeout =
+	exports.clearInterval = function(timeout) { timeout.close(); };
+	
+	function Timeout(id, clearFn) {
+	  this._id = id;
+	  this._clearFn = clearFn;
+	}
+	Timeout.prototype.unref = Timeout.prototype.ref = function() {};
+	Timeout.prototype.close = function() {
+	  this._clearFn.call(window, this._id);
+	};
+	
+	// Does not start the time, just sets up the members needed.
+	exports.enroll = function(item, msecs) {
+	  clearTimeout(item._idleTimeoutId);
+	  item._idleTimeout = msecs;
+	};
+	
+	exports.unenroll = function(item) {
+	  clearTimeout(item._idleTimeoutId);
+	  item._idleTimeout = -1;
+	};
+	
+	exports._unrefActive = exports.active = function(item) {
+	  clearTimeout(item._idleTimeoutId);
+	
+	  var msecs = item._idleTimeout;
+	  if (msecs >= 0) {
+	    item._idleTimeoutId = setTimeout(function onTimeout() {
+	      if (item._onTimeout)
+	        item._onTimeout();
+	    }, msecs);
+	  }
+	};
+	
+	// That's not how node.js implements it but the exposed api is the same.
+	exports.setImmediate = typeof setImmediate === "function" ? setImmediate : function(fn) {
+	  var id = nextImmediateId++;
+	  var args = arguments.length < 2 ? false : slice.call(arguments, 1);
+	
+	  immediateIds[id] = true;
+	
+	  nextTick(function onNextTick() {
+	    if (immediateIds[id]) {
+	      // fn.call() is faster so we optimize for the common use-case
+	      // @see http://jsperf.com/call-apply-segu
+	      if (args) {
+	        fn.apply(null, args);
+	      } else {
+	        fn.call(null);
+	      }
+	      // Prevent ids from leaking
+	      exports.clearImmediate(id);
+	    }
+	  });
+	
+	  return id;
+	};
+	
+	exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate : function(id) {
+	  delete immediateIds[id];
+	};
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(94).setImmediate, __webpack_require__(94).clearImmediate))
+
+/***/ },
+/* 95 */
+/***/ function(module, exports) {
+
+	module.exports = {
+	  'COMPONENT_TYPE': 1,
+	  'ELEMENT_TYPE': 2,
+	  'NAMESPACE': {
+	    html: "http://www.w3.org/1999/xhtml",
+	    svg: "http://www.w3.org/2000/svg"
+	  }
+	}
+
+/***/ },
+/* 96 */
+/***/ function(module, exports) {
+
+	function cacheFactory(name, max) {
+	    var cachePool = {};
+	    return function() {
+	        max = max || 1000;
+	        var keys = [],
+	            cache = cachePool[name] ? (cachePool[name]) : (cachePool[name] = {});
+	        return {
+	            put: function(key, value) {
+	                if (keys.length > this.max) {
+	                    cache[keys.shift()] = undefined;
+	                }
+	                if (cache[key] === undefined) {
+	                    keys.push(key);
+	                }
+	                cache[key] = value;
+	                return value;
+	            },
+	            get: function(key) {
+	                if (key === undefined) return cache;
+	                return cache[key];
+	            },
+	            len: function() {
+	                return keys.length;
+	            }
+	        };
+	
+	    }();
+	}
+	
+	function initCache(waf) {
+	    waf.elCache = cacheFactory("el");
+	}
+	
+	module.exports = initCache;
+
+/***/ },
+/* 97 */
+/***/ function(module, exports) {
+
+	function initCompile(waf) {
+	    waf.compile = function(el) {
+	        return function(context) {
+	            //context如果不传递，默认获取顶级的context中的model
+	            return "( 单据编号：AP2016000010 | 单据日期：2016-07-14 | 单据类型：采购发票 | 往来户： )";
+	        }
+	
+	    }
+	}
+	
+	module.exports = initCompile;
+
+/***/ },
+/* 98 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var core = __webpack_require__(81);
+	var waf = core.waf;
+	var Component = core.Component;
+	var h = core.h;
+	var _ = core._;
+	
+	var CTRLROLE = "linkButton",
+	    MAINCLASS = ".ui-linkbutton";
+	
+	
+	/*所使用的jquery方法一览*/
+	/**hasClass,closest,delegant,extend**/
+	function innerClick(event) {
+	    var target = event.target;
+	    //TODO:jQuery方法的替换
+	    var lb = waf(target).closest(".ui-linkbutton")[0];
+	    var id = lb.id;
+	    //TODO:绑定的对象,instance本质上可以为Page对象，也可以是linkButton对象,这里为linkButton对象
+	    //这里可以做改进，dom所绑定的对象可以直接指向Page对象,没有必要每个linkButton等控件都必须有对应的绑定对象
+	    var options = lb.inst ? lb.inst.options : waf.dom.buildOptions(lb);
+	    if (!options.disable) {
+	        if (options.onclick) {
+	            waf.fnUtils.invokeFun(options.onclick);
+	        } else if (options.actionBinding || options.actionbinding) {
+	            //TODO:这里不应该这样处理，应该在buildOption中就已经做了处理。
+	            waf.fnUtils.invokeAction(options.actionBinding || options.actionbinding);
+	        }
+	    }
+	}
+	
+	//以代理的方式定义按钮的事件
+	waf("body").delegate(MAINCLASS, 'keydown', function(e) {
+	    if (e.keyCode == 13) {
+	        innerClick(e);
+	    }
+	});
+	waf("body").delegate(MAINCLASS, 'click', function(e) {
+	    innerClick(e);
+	});
+	
+	
+	var WafLinkButton = Component.extend({
+	    name: CTRLROLE,
+	    template: null,
+	    generateTree: _.bind(generateTree,this),
+	    disable: function() {
+	        this.set("disable", true);
+	    },
+	    enable: function() {
+	        this.set("disable", false);
+	    }
+	});
+	WafLinkButton.defaultOptions = {
+	    caption: "",
+	    tabindex: 0,
+	    onclick: null,
+	    actionBinding: null,
+	    id: null,
+	    tagClass: "",
+	    style: "",
+	    iconCls: null
+	};
+	
+	
+	
+	//从DOM来的话，结构是由DOM定义的，这里的结构是定义在方法generateTree方法中的。
+	function generateTree(options) {
+	    var attrs = {
+	        "ctrlrole": CTRLROLE,
+	        "tabindex": options.tabindex ? options.tabindex : 0,
+	    };
+	    if (options.onclick) {
+	        attrs.onclick1 = options.onclick;
+	    }
+	    if (options.actionBinding) {
+	        attrs.actionBinding = options.actionBinding;
+	    }
+	
+	
+	    var cls = [];
+	    cls.push(MAINCLASS + ".btn");
+	    cls.push(options.disable ? ".ui-lb-disabled.ui-state-disabled" : "");
+	    cls.push(options.tagClass ? "." + options.tagClass : "");
+	
+	    return h("a#" + (options.id) + " " + cls.join(""), {
+	        "attributes": attrs
 	    }, [
 	        options.iconCls ? h("span.ui-lb-icon.f-icon-cloud-upload") : "",
 	        options.caption ? h("span.ui-lb-text", [options.caption]) : ""
 	    ]);
+	}
+	
+	//TODO:createDOM && initFun只是为了兼容之前的方式所做的处理,更好的方式应该是直接通过DOM来创建
+	//<linkButton id='save' tagClass='aa' caption='Save'/>
+	//$("<linkButton id='save' tagClass='aa' caption='Save'/>").appendTo($("body"));
+	//$("#save").disable();
+	
+	module.exports = WafLinkButton;
+	//exports.generateTree = generateTree;
+
+/***/ },
+/* 99 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var core = __webpack_require__(81);
+	var waf = core.waf;
+	var Component = core.Component;
+	var h = core.h;
+	var transfer = core.render.transfer;
+	var _ = core._;
+	
+	var CTRLROLE = "section",
+	    MAINCLASS = ".ui-section";
+	
+	function parseSummary(el, id) {
+	    var key = id + "_summary",
+	        fn = waf.elCache.get(key);
+	    if (!fn) {
+	        fn = waf.compile(el);
+	        waf.elCache.put(key, fn);
+	    }
+	    fn.call(this, el);
+	}
+	
+	function toggle(){
+		alert(989);
+	}
+	
+	//TODO:这里还存在好多问题，el表达式的绑定，
+	function generateTree(options) {
+	    var id = options.id;
+	    var prop = {};
+	    //对attr的取值
+	    var attrs = {
+	        "ctrlrole": CTRLROLE
+	    };
+	    prop.attributes = attrs;
+	    if (options.style) {
+	        prop.styles = options.style;
+	    }
+	    //对class的取值
+	    var cls = [];
+	    cls.push(MAINCLASS);
+	    cls.push(options.tagClass ? "." + options.tagClass : "");
+	    //以上部门可以统一提取处理
+	
+	    //对children的处理,TODO:这里存在问题，为什么是使用两个DOM来控制
+	    var icon = h("span.arrow" + (options.autoOpen ? ".ui-section-arrow-open" : ".ui-section-arrow-close"), [h("i")]);
+	    var title = h("span.title" + (options.autoOpen ? ".ui-section-minus" : ".ui-section-plus"), {
+	    	"ev-click":toggle
+	    },[options.title]);
+	
+	    //TODO:这里还是需要表达式引擎来处理这些事情。
+	    var summary = h("span.summary" + (options.autoOpen ? "" : ".ui-section-summary"), {
+	        "attributes": {
+	            "summary": options.summary
+	        }
+	    }, [parseSummary(options.summary, id)]);
+	
+	    //如果是字段布局，需要增加ui-columnLayout样式类
+	    var ccls = [];
+	    if (options.customLayout && (layoutName = options.customLayout.split(";")[0]) && /^field-(one|two|three)-col$/.test(layoutName)) {
+	        ccls.push(".ui-columnLayout");
+	    }
+	    ccls.push(options.autoOpen ? "" : "hide");
+	
+	    var content = h("div#" + id + "_content.content" + ccls.join(""));
+	
+	    var add = null;
+	    if (options.additional) {
+	        add = transfer(options.additional)
+	    }
+	
+	    return h("div#" + id + cls.join(""), prop, [h("div.sheader", [icon, title, summary, add]), content]);
 	
 	}
 	
+	var WafSection = Component.extend({
+	    name: CTRLROLE,
+	    template: null,
+	    generateTree: _.bind(generateTree,this),
+	    addHeaderItem: function(source) {
+	        this.set("additional", source);
+	    },
+	    removeHeaderItem: function() {
+	        this.set("additional", null);
+	    },
+	    _toggle: function(show) {
+	        this.set("autoOpen", show);
+	        //TODO:暴露事件
+	        this.emit(show ? "onopen" : "onclose");
+	    },
+	});
+	WafSection.defaultOptions = {
+	    tagClass: '',
+	    style: '',
+	    title: '',
+	    openIconCls: 'ui-section-minus',
+	    closeIconCls: 'ui-section-plus',
+	    autoOpen: true,
+	    hidden: false,
+	    lazyLoad: false,
+	    summary: '',
+	    additional: null
+	};
 	
-	exports.createDOMFun = function(options) {
-	    var tree = generateTree(options);
-	    return createElement(tree);
-	}
-	exports.initFun = function(dom, options) {
-	    $("#" + options.id).mount();
-	}
+	module.exports = WafSection;
 
 /***/ }
 /******/ ])

@@ -1,40 +1,57 @@
-var $ = require('jquery');
-var h = require('virtual-dom/h');
-var diff = require('virtual-dom/diff');
-var patch = require('virtual-dom/patch');
-var createElement = require('virtual-dom/create-element');
-var linkbutton = require('./newLinkbutton');
+var waf = require('./core/index').waf;
+var WafLinkButton = require('./component/linkButton/linkButton');
+var WafSection = require('./component/section/section');
 
 
-
-var $container = $('.container');
-
-function generateTree(options) {
-    return h("a#" + (options.id) + ".ui-linkbutton.btn" + (options.tagClass ? options.tagClass : ""), {
-        "attributes": {
-            "ctrlrole": "linkButton",
-            "tabindex": options.tabindex ? options.tabindex : 0
-        }
-    }, [
-        options.iconCls ? h("span.ui-lb-icon.f-icon-cloud-upload") : "",
-        options.caption ? h("span.ui-lb-text", [options.caption]) : ""
-    ]);
-
+//onclick的模拟处理
+window._self = {};
+_self.btnClick = function() {
+    alert(1);
 }
-var submitBtn = generateTree({
-    caption: "修改",
-    id: "submitBtn",
-    iconCls: "f-icon-eraser"
-});
-submitBtn = createElement(submitBtn);
-$container.append(submitBtn);
+_self.confirm1 = function() {
+    alert("confirm1 Action!");
+}
+_self.confirm2 = function() {
+    alert("confirm2 Action!");
+}
 
-//动态的创建btn
+
 var options = {
-    caption: "修改1",
-    id: "submitBtn1",
-    iconCls: "f-icon-eraser"
-};
-var dom = linkbutton.createDOMFun(options);
-$container.append(dom);
-linkbutton.initFun(dom, options);
+        caption: "修改2",
+        id: "submitBtn2",
+        iconCls: "f-icon-eraser",
+        onclick: "btnClick",
+        tabindex: 0
+    };
+
+var $container = waf('.container');
+
+var btn = new WafLinkButton(options);
+btn.appendTo($container[0]);
+
+//旧方法的兼容性处理
+waf("#createBtn").click(function() {
+    var $container = waf('.container');
+
+    options = {
+        caption: "修改3",
+        id: "submitBtn3",
+        actionBinding: "confirm1",
+        disable: true
+    };
+    dom = waf.createDOM("linkButton", options);
+    $container.append(dom);
+    lk1 = waf.initFun("linkButton", options, dom);
+    lk1.enable();
+})
+
+//section
+options = {
+    id:"section1",
+    title:"基本信息",
+    autoOpen:true
+}
+var sec = new WafSection(options);
+sec.appendTo($container[0]);
+
+
