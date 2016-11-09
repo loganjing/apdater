@@ -4,6 +4,7 @@ var linkButton = require('./component/linkButton/linkButton');
 var section = require('./component/section/section');
 
 
+
 //onclick的模拟处理
 window._self = {};
 _self.btnClick = function() {

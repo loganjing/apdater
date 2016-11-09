@@ -6,8 +6,21 @@ var renderChildrenTree = core.renderChildrenTree;
 var CTRLROLE = "section",
     MAINCLASS = "ui-section";
 
+function bind(fn) {
+    for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        args[_key - 1] = arguments[_key];
+    }
 
-function Section(options) {
+    return function() {
+        for (var _len2 = arguments.length, args2 = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+            args2[_key2] = arguments[_key2];
+        }
+
+        return fn.apply(undefined, [].concat(args, args2));
+    };
+}
+
+function Section(options, handler) {
     var id = options.id;
     //对attr的取值
     var sdiv = {
@@ -22,7 +35,7 @@ function Section(options) {
     var icon = h("span.arrow" + (options.autoOpen ? ".ui-section-arrow-open" : ".ui-section-arrow-close"), [h("i")]);
     var title = h("span.title" + (options.autoOpen ? ".ui-section-minus" : ".ui-section-plus"), {
         on: {
-            click: toggle.bind(null,{type:"toggle"})
+            click: bind(handler, "toggle")
         }
     }, [options.title]);
 
@@ -58,11 +71,18 @@ function Section(options) {
     return h("div", sdiv, [h("div.sheader", [icon, title, summary]), content]);
 }
 
-function update(state,action){
-    if(action == "toggle"){
-        state.autoOpen = false;
-        return state;
+function toggle(option) {
+    option.autoOpen = !option.autoOpen;
+    return option;
+}
+
+
+
+function update(option, action) {
+    if (action == "toggle") {
+        return toggle(option);
     }
+    return option;
 }
 
 Section.defaultOptions = {
@@ -88,10 +108,10 @@ function parseSummary(el, id) {
     fn.call(this, el);
 }
 
-function toggle() {
-    //
-    alert(989);
-}
+
 
 module.exports = Section;
-waf.registerComponent("com.kingdee.bos.ctrl.web.Section", Section);
+waf.registerComponent("com.kingdee.bos.ctrl.web.Section", {
+    render: Section,
+    update: update
+});

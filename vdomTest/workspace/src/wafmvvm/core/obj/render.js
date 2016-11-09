@@ -1,6 +1,8 @@
 var render = require('../vdom/index').render;
 var h = require('../vdom/index').h;
 var VNode = require('snabbdom/vnode');
+var patch =render;
+var toHTML = require('snabbdom-to-html');
 
 function initRegister(waf) {
     waf.registerComponent = function(type, fn) {
@@ -37,6 +39,8 @@ function renderApp(container, meta) {
         render(oldNodes, vNodes);
     }
 
+    console.log(toHTML(vNodes));
+
 }
 
 function renderChildrenTree(children) {
@@ -47,13 +51,26 @@ function renderChildrenTree(children) {
     return vNodes;
 }
 
-function normizeNativeComponent(option){
+function normizeNativeComponent(option) {
     //分离出style、class，on，其他添加到props中
     var type = option.componentType;
     var className = option.tagClass;
     var style = option.style;
     //TODO:他的children中也可能存在自定义组件，后续再拆分
-    return h(type,option.children);
+    return h(type, option.children);
+}
+
+function view(option, _ref) {
+    var render = _ref.render;
+    var update = _ref.update;
+
+    var newNode = render(option, function(action,e) {
+        var newState = update(option, action,e);
+        var tmp = view(newState, _ref);
+        patch(newNode,tmp);
+
+    });
+    return newNode;
 }
 
 function renderChildTree(option) {
@@ -61,19 +78,13 @@ function renderChildTree(option) {
     var tree;
     if (isCustomComponent(type)) {
         var fn = components[type];
-        tree = fn(option);
+        tree = view(option, fn);
         //TODO:type的融合&校验
         //对childrn的处理,组件内部已经对children做了处理
-        // if (option.children) {
-        //     var vNodes = renderChildrenTree(option.children);
-        //     if (vNodes && vNodes.length>0) {
-        //         tree.children = vNodes;
-        //     }
-        // }
         return tree;
     } else if (isNativeComponent(type)) {
         return normizeNativeComponent(option);
-        return h(type,option.children);
+        return h(type, option.children);
     }
 }
 
