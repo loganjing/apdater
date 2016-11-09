@@ -1,13 +1,15 @@
 var waf = require("./global/index");
-var Component = require("./obj/index").Component;
-var FormComponent = require("./obj/index").FormComponent;
-var ContainerComponent = require("./obj/index").ContainerComponent;
+var objModule = require("./obj/index");
+var Component = objModule.Component;
+var FormComponent = objModule.FormComponent;
+var ContainerComponent = objModule.ContainerComponent;
 var vdom= require("./vdom/index");
 
 var env =  require("./env");
 var initCache = require('./cache');
 var initCompile = require('./compile/index');
-var _ = require('./util');
+var _ = require('lodash');
+var renderChildrenTree = objModule.renderChildrenTree;
 
 
 initCache(waf);
@@ -21,5 +23,7 @@ module.exports = {
 	h:vdom.h,
 	render:vdom.render,
 	env : env,
-	_:_
+	_:_,
+	renderChildrenTree:renderChildrenTree,
+	renderApp:objModule.renderApp
 }

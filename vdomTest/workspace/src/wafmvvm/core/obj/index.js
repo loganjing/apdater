@@ -5,8 +5,13 @@ var ContainerComponent = require("./component").WafContainerComponent;
 
 var waf = require("../global/index");
 
+
+
 //var initRegister = require("./register");
 var initDynamic = require("./dynaInit");
+var renderModel = require("./render");
+var initRegister = renderModel.initRegister;
+var renderChildrenTree = renderModel.renderChildrenTree;
 
 //var initObjectDOM = require("./dom");
 var initEvent = require("./event");
@@ -16,6 +21,7 @@ var version = Component.version;
 //if (!(version && version >= "8.3.0")) {
 //兼容性考虑的
 initDynamic(waf, Component);
+initRegister(waf);
 //}
 
 var dom = require("../dom");
@@ -36,3 +42,6 @@ Component.mix({
 module.exports.Component = Component;
 module.exports.FormComponent = FormComponent;
 module.exports.ContainerComponent = ContainerComponent;
+module.exports.renderChildrenTree = renderModel.renderChildrenTree;
+module.exports.renderApp = renderModel.renderApp;
+module.exports.renderChildTree = renderModel.renderChildTree;

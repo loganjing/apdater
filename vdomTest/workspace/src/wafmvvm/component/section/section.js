@@ -4,9 +4,77 @@ var Component = core.Component;
 var h = core.h;
 var transfer = core.render.transfer;
 var _ = core._;
+var renderChildrenTree = core.renderChildrenTree;
 
 var CTRLROLE = "section",
-    MAINCLASS = ".ui-section";
+    MAINCLASS = "ui-section";
+
+
+function Section(options) {
+    var id = options.id;
+    //对attr的取值
+    var sdiv = {
+        props: {
+            "ctrlrole": CTRLROLE,
+            "id": id,
+            className: [MAINCLASS, options.tagClass ? options.tagClass : ""].join(" ")
+        }
+    };
+
+    //对children的处理
+    var icon = h("span.arrow" + (options.autoOpen ? ".ui-section-arrow-open" : ".ui-section-arrow-close"), [h("i")]);
+    var title = h("span.title" + (options.autoOpen ? ".ui-section-minus" : ".ui-section-plus"), {
+        on: {
+            click: toggle
+        }
+    }, [options.title]);
+
+    //TODO:这里还是需要表达式引擎来处理这些事情。
+    var summContent = parseSummary(options.summary, id);
+    var summary = h("span.summary" + (options.autoOpen ? "" : ".ui-section-summary"), {
+        "props": {
+            "summary": options.summary
+        }
+    }, summContent ? [summContent] : null);
+
+    //如果是字段布局，需要增加ui-columnLayout样式类
+    var ccls = [];
+    if (options.customLayout && (layoutName = options.customLayout.split(";")[0]) && /^field-(one|two|three)-col$/.test(layoutName)) {
+        ccls.push("ui-columnLayout");
+    }
+    ccls.push(options.autoOpen ? "" : "hide");
+
+    var content = null;
+    if (options.children) {
+        content = h("div#" + id + "_content", {
+            props: {
+                className: "content " + ccls.join("")
+            }
+        }, renderChildrenTree(options.children));
+    } else {
+        content = h("div#" + id + "_content", {
+            props: {
+                className: "content " + ccls.join("")
+            }
+        })
+    }
+    return h("div", sdiv, [h("div.sheader", [icon, title, summary]), content]);
+}
+
+Section.defaultOptions = {
+    tagClass: '',
+    style: '',
+    title: '',
+    openIconCls: 'ui-section-minus',
+    closeIconCls: 'ui-section-plus',
+    autoOpen: true,
+    hidden: false,
+    lazyLoad: false,
+    summary: '',
+    additional: null
+};
+
+
 
 function parseSummary(el, id) {
     var key = id + "_summary",
@@ -18,8 +86,8 @@ function parseSummary(el, id) {
     fn.call(this, el);
 }
 
-function toggle(){
-	alert(989);
+function toggle() {
+    alert(989);
 }
 
 //TODO:这里还存在好多问题，el表达式的绑定，
@@ -43,8 +111,8 @@ function generateTree(options) {
     //对children的处理,TODO:这里存在问题，为什么是使用两个DOM来控制
     var icon = h("span.arrow" + (options.autoOpen ? ".ui-section-arrow-open" : ".ui-section-arrow-close"), [h("i")]);
     var title = h("span.title" + (options.autoOpen ? ".ui-section-minus" : ".ui-section-plus"), {
-    	"ev-click":toggle
-    },[options.title]);
+        "ev-click": toggle
+    }, [options.title]);
 
     //TODO:这里还是需要表达式引擎来处理这些事情。
     var summary = h("span.summary" + (options.autoOpen ? "" : ".ui-section-summary"), {
@@ -74,7 +142,7 @@ function generateTree(options) {
 var WafSection = Component.extend({
     name: CTRLROLE,
     template: null,
-    generateTree: _.bind(generateTree,this),
+    generateTree: _.bind(generateTree, this),
     addHeaderItem: function(source) {
         this.set("additional", source);
     },
@@ -100,4 +168,5 @@ WafSection.defaultOptions = {
     additional: null
 };
 
-module.exports = WafSection;
+module.exports = Section;
+waf.registerComponent("com.kingdee.bos.ctrl.web.Section", Section);

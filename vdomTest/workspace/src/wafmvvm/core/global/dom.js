@@ -7,6 +7,9 @@ function initDOMAssistant(waf) {
     }
 
     waf.dom.buildOptionsByDom = function(elem) {
+        //1.从实例中获取
+        //2.从状态管理中获取
+        //3.从DOM中获取
         var options = waf.dom.getOptions(elem) || {};
         var attrs = elem.attributes;
         for (var i = 0; i < attrs.length; i++) {
@@ -19,6 +22,7 @@ function initDOMAssistant(waf) {
     waf.dom.buildOptions = function(elem,arg1,arg2,arg3){
         //TODO:暂时这样合并，后续以状态为主
         return waf.extend({},arg1||{},arg2||{},arg3||{});
+        //return waf.dom.buildOptionsByDom(elem);
     }
 }
 module.exports = initDOMAssistant;

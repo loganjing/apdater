@@ -1,6 +1,7 @@
 var waf = require('./core/index').waf;
-var WafLinkButton = require('./component/linkButton/linkButton');
-var WafSection = require('./component/section/section');
+var renderApp = require('./core/index').renderApp;
+var linkButton = require('./component/linkButton/linkButton');
+var section = require('./component/section/section');
 
 
 //onclick的模拟处理
@@ -16,42 +17,52 @@ _self.confirm2 = function() {
 }
 
 
-var options = {
-        caption: "修改2",
-        id: "submitBtn2",
+var meta = {
+    componentType: "com.kingdee.bos.ctrl.web.Section",
+    id: "section7",
+    title: "基本信息",
+    autoOpen: true,
+    children: [{
+        componentType: "com.kingdee.bos.ctrl.web.Button",
+        id: "toolBar_submit",
+        caption: "提交",
         iconCls: "f-icon-eraser",
         onclick: "btnClick",
         tabindex: 0
-    };
+    }, {
+        componentType: "com.kingdee.bos.ctrl.web.Button",
+        id: "toolBar_save",
+        caption: "保存",
+        iconCls: "f-icon-eraser",
+        onclick: "btnClick",
+        tabindex: 0
+    }, {
+        componentType: "span",
+        children: ["这是一个span的测试文本"]
+    }]
+};
 
-var $container = waf('.container');
 
-var btn = new WafLinkButton(options);
-btn.appendTo($container[0]);
+var container = document.getElementById("container");
+renderApp(container,meta);
 
-//旧方法的兼容性处理
-waf("#createBtn").click(function() {
-    var $container = waf('.container');
-
-    options = {
-        caption: "修改3",
-        id: "submitBtn3",
-        actionBinding: "confirm1",
-        disable: true
-    };
-    dom = waf.createDOM("linkButton", options);
-    $container.append(dom);
-    lk1 = waf.initFun("linkButton", options, dom);
-    lk1.enable();
-})
-
-//section
-options = {
-    id:"section1",
-    title:"基本信息",
-    autoOpen:true
+/******************************************
+//第一步测试：
+var lk1 = {
+    caption: "修改2",
+    id: "submitBtn2",
+    iconCls: "f-icon-eraser",
+    onclick: "btnClick",
+    tabindex: 0
+};
+var sec1 = {
+    id: "section1",
+    title: "基本信息",
+    autoOpen: true,
+    children: [linkButton(lk1)]
 }
-var sec = new WafSection(options);
-sec.appendTo($container[0]);
 
-
+var sec = section(sec1);
+var container = document.getElementById("container");
+render(container, sec);
+***/

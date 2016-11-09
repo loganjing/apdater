@@ -1,6 +1,7 @@
 /**
  ** https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Operators/super
  ** 不能使用super, super是EMCSCRIPT6关键字，只能使用supr
+ ** inherit from kclass
  **/
 var f = 'function',
     fnTest = /xyz/.test(function() {
