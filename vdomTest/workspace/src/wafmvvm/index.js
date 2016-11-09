@@ -44,7 +44,9 @@ var meta = {
 
 
 var container = document.getElementById("container");
+//传递页面全局性的状态进去
 renderApp(container,meta);
+
 
 /******************************************
 //第一步测试：
