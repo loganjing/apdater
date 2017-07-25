@@ -2,7 +2,8 @@ var waf = require('./core/index').waf;
 var renderApp = require('./core/index').renderApp;
 var linkButton = require('./component/linkButton/linkButton');
 var section = require('./component/section/section');
-
+var section = require('./component/section/section');
+var Store = require('./core/index').Store;
 
 
 //onclick的模拟处理
@@ -43,10 +44,13 @@ var meta = {
     }]
 };
 
+var store = new Store({
+    state:{meta:meta}
+});
 
 var container = document.getElementById("container");
 //传递页面全局性的状态进去
-renderApp(container,meta);
+renderApp(container,store);
 
 
 /******************************************

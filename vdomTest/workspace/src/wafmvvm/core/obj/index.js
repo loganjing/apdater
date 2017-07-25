@@ -2,6 +2,7 @@
 var Component = require("./component").WafComponent;
 var FormComponent = require("./component").WafFormComponent;
 var ContainerComponent = require("./component").WafContainerComponent;
+var WafObject = require('./classInherit');
 
 var waf = require("../global/index");
 
@@ -39,6 +40,7 @@ Component.mix({
 //initEvent(Component);
 
 
+module.exports.WafObject = WafObject;
 module.exports.Component = Component;
 module.exports.FormComponent = FormComponent;
 module.exports.ContainerComponent = ContainerComponent;

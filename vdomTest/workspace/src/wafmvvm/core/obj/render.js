@@ -22,10 +22,10 @@ function isNativeComponent(type) {
 }
 
 
-function renderApp(container, meta) {
-
+function renderApp(container, store) {
+    var meta = store.get("meta");
     var oldNodes = container._vNode;
-    var vNodes = renderChildTree(meta);
+    var vNodes = renderChildTree(meta,store);
     if (!oldNodes) {
         var el = document.createElement('div');
         container.appendChild(el);
@@ -37,16 +37,15 @@ function renderApp(container, meta) {
         container._vNode = vNodes;
     } else {
         render(oldNodes, vNodes);
+        container._vNode = vNodes;
     }
-
-    console.log(toHTML(vNodes));
-
+    //console.log(toHTML(vNodes));
 }
 
-function renderChildrenTree(children) {
+function renderChildrenTree(children,store) {
     var vNodes = [];
     for (var i = 0; i < children.length; i++) {
-        vNodes.push(renderChildTree(children[i]));
+        vNodes.push(renderChildTree(children[i],store));
     }
     return vNodes;
 }
@@ -68,17 +67,21 @@ function view(option, _ref) {
         var newState = update(option, action,e);
         var tmp = view(newState, _ref);
         patch(newNode,tmp);
-
     });
     return newNode;
 }
 
-function renderChildTree(option) {
+function renderChildTree(option,store) {
     var type = option.componentType;
     var tree;
     if (isCustomComponent(type)) {
         var fn = components[type];
-        tree = view(option, fn);
+        if(fn.functional){
+            var com = new fn(store);
+            tree = com.render(option);
+        }else{
+            tree = view(option, fn);
+        }
         //TODO:type的融合&校验
         //对childrn的处理,组件内部已经对children做了处理
         return tree;

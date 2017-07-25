@@ -1,5 +1,6 @@
 var snabbdom = require('snabbdom');
 var h = require('snabbdom/h');
+var thunk = require('snabbdom/thunk');
 
 
 
@@ -29,3 +30,4 @@ function render(oldTree, newTree) {
 init();
 module.exports.render = render;
 module.exports.h = h;
+module.exports.thunk = thunk;

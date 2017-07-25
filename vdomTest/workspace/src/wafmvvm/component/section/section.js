@@ -2,6 +2,8 @@ var core = require('../../core/index');
 var waf = core.waf;
 var h = core.h;
 var renderChildrenTree = core.renderChildrenTree;
+var Component = core.Component;
+var thunk = core.thunk;
 
 var CTRLROLE = "section",
     MAINCLASS = "ui-section";
@@ -20,7 +22,40 @@ function bind(fn) {
     };
 }
 
-function Section(options, handler) {
+var Section = Component.extend({
+    initialize: function(store) {
+        this.store = store;
+    },
+    set: function(prop, value) {
+        this.store.commit(["meta", this.id, prop], value);
+    },
+    get: function(prop) {
+        var path;
+        if (prop == void 0) {
+            path = ["meta", this.id];
+        } else {
+            path = ["meta", this.id, prop];
+        }
+        //或者取默认值
+        var val = this.store.get(path);
+        if (val == void 0) {
+            val = Section.defaultOptions[prop];
+        }
+        return val;
+    },
+    render: function(options) {
+        this.id = options.id;
+        options.toggle = this.toggle.bind(this);
+        return thunk("section",options.id,sectionView,[options]);
+    },
+    toggle: function() {
+        var state = this.get();
+        this.set("autoOpen", !state.autoOpen);
+    }
+});
+
+function sectionView(options) {
+    var toggle = options.toggle;
     var id = options.id;
     //对attr的取值
     var sdiv = {
@@ -28,23 +63,35 @@ function Section(options, handler) {
             "ctrlrole": CTRLROLE,
             "id": id,
             className: [MAINCLASS, options.tagClass ? options.tagClass : ""].join(" ")
-        }
+        },
+        key: "sectionContainer"
     };
 
     //对children的处理
-    var icon = h("span.arrow" + (options.autoOpen ? ".ui-section-arrow-open" : ".ui-section-arrow-close"), [h("i")]);
-    var title = h("span.title" + (options.autoOpen ? ".ui-section-minus" : ".ui-section-plus"), {
+    var icon = h("span", {
+        props: {
+            className: "arrow " + (options.autoOpen ? "ui-section-arrow-open" : "ui-section-arrow-close")
+        },
+        key: "arrow"
+    }, [h("i")]);
+    var title = h("span", {
         on: {
-            click: bind(handler, "toggle")
-        }
+            click: toggle
+        },
+        props: {
+            className: "title " + (options.autoOpen ? "ui-section-minus" : "ui-section-plus")
+        },
+        key: "title"
     }, [options.title]);
 
     //TODO:这里还是需要表达式引擎来处理这些事情。
     var summContent = parseSummary(options.summary, id);
-    var summary = h("span.summary" + (options.autoOpen ? "" : ".ui-section-summary"), {
-        "props": {
-            "summary": options.summary
-        }
+    var summary = h("span", {
+        props: {
+            "summary": options.summary,
+            "className": "summary " + (options.autoOpen ? "" : "ui-section-summary")
+        },
+        key: "summary"
     }, summContent ? [summContent] : null);
 
     //如果是字段布局，需要增加ui-columnLayout样式类
@@ -59,24 +106,22 @@ function Section(options, handler) {
         content = h("div#" + id + "_content", {
             props: {
                 className: "content " + ccls.join("")
-            }
-        }, renderChildrenTree(options.children));
+            },
+            key: "content"
+        }, renderChildrenTree(options.children, this.store));
     } else {
         content = h("div#" + id + "_content", {
             props: {
                 className: "content " + ccls.join("")
-            }
+            },
+            key: "content"
         })
     }
     return h("div", sdiv, [h("div.sheader", [icon, title, summary]), content]);
 }
 
-function toggle(option) {
-    option.autoOpen = !option.autoOpen;
-    return option;
-}
 
-
+Section.functional = true;
 
 function update(option, action) {
     if (action == "toggle") {
@@ -110,8 +155,5 @@ function parseSummary(el, id) {
 
 
 
-module.exports = Section;
-waf.registerComponent("com.kingdee.bos.ctrl.web.Section", {
-    render: Section,
-    update: update
-});
+// module.exports = Section;
+waf.registerComponent("com.kingdee.bos.ctrl.web.Section", Section);
